@@ -32,13 +32,13 @@ from omegaconf import OmegaConf
 
 
 if torch.cuda.is_available():
-    device = torch.device('cuda:0')
+    device = torch.device('cuda:3')
 else:
     device = torch.device('cpu')
 
 # arg parser
-parser = argparse.ArgumentParser(description='mlp snn')
-parser.add_argument('--config_file', type=str, default='snn_mlp_1.yaml',
+parser = argparse.ArgumentParser(description='conv snn')
+parser.add_argument('--config_file', type=str, default='snn_conv_mnist.yaml',
                     help='path to configuration file')
 parser.add_argument('--train', action='store_true',
                     help='train model')
@@ -115,47 +115,107 @@ class mysnn(torch.nn.Module):
         self.train_bias = train_bias
         self.membrane_filter = membrane_filter
 
-        self.axon1 = dual_exp_iir_layer((784,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.snn1 = neuron_layer(784, 500, self.length, self.batch_size, tau_m, self.train_bias, self.membrane_filter)
-
-        self.axon2 = dual_exp_iir_layer((500,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.snn2 = neuron_layer(500, 500, self.length, self.batch_size, tau_m, self.train_bias, self.membrane_filter)
-
-        self.axon3 = dual_exp_iir_layer((500,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.snn3 = neuron_layer(500, 10, self.length, self.batch_size, tau_m, self.train_bias, self.membrane_filter)
-
-        self.dropout1 = torch.nn.Dropout(p=0.3, inplace=False)
-        self.dropout2 = torch.nn.Dropout(p=0.3, inplace=False)
+        # 1
+        self.axon1 = dual_exp_iir_layer((28,28,1), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.conv1 = conv2d_layer(
+            h_input=28, w_input=28, in_channels=1, out_channels=32, kernel_size=3,
+            stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
+            tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
+        )
+        # 2
+        self.axon2 = dual_exp_iir_layer((28, 28, 32), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.conv2 = conv2d_layer(
+            h_input=28, w_input=28, in_channels=32, out_channels=32, kernel_size=3,
+            stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
+            tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
+        )
+        # 3
+        self.axon3 = dual_exp_iir_layer((28, 28, 32), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.conv3 = conv2d_layer(
+            h_input=28, w_input=28, in_channels=32, out_channels=64, kernel_size=3,
+            stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
+            tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
+        )
+        # 4
+        self.axon4 = dual_exp_iir_layer((28, 28, 64), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.pool4 = maxpooling2d_layer(
+            h_input=28, w_input=28, in_channels=64, kernel_size=2,
+            stride=2, padding=0, dilation=1, step_num=length, batch_size=batch_size
+        )
+        # 5
+        self.axon5 = dual_exp_iir_layer((14, 14, 64), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.conv5 = conv2d_layer(
+            h_input=14, w_input=14, in_channels=64, out_channels=64, kernel_size=3,
+            stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
+            tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
+        )
+        # 6
+        self.axon6 = dual_exp_iir_layer((14, 14, 64), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.pool6 = maxpooling2d_layer(
+            h_input=14, w_input=14, in_channels=64, kernel_size=2,
+            stride=2, padding=0, dilation=1, step_num=length, batch_size=batch_size
+        )
+        # 7
+        self.axon7 = dual_exp_iir_layer((7*7*64,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.snn7 = neuron_layer(7*7*64, 512, self.length, self.batch_size, tau_m, self.train_bias, self.membrane_filter)
+        self.dropout7 = torch.nn.Dropout(p=0.3, inplace=False)
+        # 8
+        self.axon8 = dual_exp_iir_layer((512,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.snn8 = neuron_layer(512, 10, self.length, self.batch_size, tau_m, self.train_bias, self.membrane_filter)
 
     def forward(self, inputs):
         """
-        :param inputs: [batch, input_size, t]
+        :param inputs: [batch, input_size(784), t] -> [batch, 1, 28, 28, t]
         :return:
         """
+        inputs = inputs.view(-1, 28, 28, inputs.shape[2])
+        inputs = inputs.unsqueeze(1)
 
+        # 1
         axon1_states = self.axon1.create_init_states()
-        snn1_states = self.snn1.create_init_states()
-
-        axon2_states = self.axon2.create_init_states()
-        snn2_states = self.snn2.create_init_states()
-
-        axon3_states = self.axon3.create_init_states()
-        snn3_states = self.snn3.create_init_states()
-
+        conv1_states = self.conv1.create_init_states()
         axon1_out, axon1_states = self.axon1(inputs, axon1_states)
-        spike_l1, snn1_states = self.snn1(axon1_out, snn1_states)
+        spike_l1, conv1_states = self.conv1(axon1_out, conv1_states)
+        # 2
+        axon2_states = self.axon2.create_init_states()
+        conv2_states = self.conv2.create_init_states()
+        axon2_out, axon2_states = self.axon2(spike_l1, axon2_states)
+        spike_l2, conv2_states = self.conv2(axon2_out, conv2_states)
+        # 3
+        axon3_states = self.axon3.create_init_states()
+        conv3_states = self.conv3.create_init_states()
+        axon3_out, axon3_states = self.axon3(spike_l2, axon3_states)
+        spike_l3, conv3_states = self.conv3(axon3_out, conv3_states)
+        # 4
+        axon4_states = self.axon4.create_init_states()
+        conv4_states = self.conv4.create_init_states()
+        axon4_out, axon4_states = self.axon4(spike_l3, axon4_states)
+        spike_l4, conv4_states = self.conv4(axon4_out, conv4_states)
+        # 5
+        axon5_states = self.axon5.create_init_states()
+        conv5_states = self.conv5.create_init_states()
+        axon5_out, axon5_states = self.axon5(spike_l4, axon5_states)
+        spike_l5, conv5_states = self.conv5(axon5_out, conv5_states)
+        # 6
+        axon6_states = self.axon6.create_init_states()
+        conv6_states = self.conv6.create_init_states()
+        axon6_out, axon6_states = self.axon6(spike_l5, axon6_states)
+        spike_l6, conv6_states = self.conv6(axon6_out, conv6_states)
+        # 6 -> 7 [batch, 1, 28, 28, t]
 
-        drop_1 = self.dropout1(spike_l1)
+        # 7
+        axon7_states = self.axon7.create_init_states()
+        snn7_states = self.snn7.create_init_states()
+        axon7_out, axon7_states = self.axon7(spike_l6, axon7_states)
+        spike_l7, snn7_states = self.snn7(axon7_out, snn7_states)
+        drop_7 = self.dropout7(spike_l7)
+        # 8
+        axon8_states = self.axon8.create_init_states()
+        snn8_states = self.snn8.create_init_states()
+        axon8_out, axon8_states = self.axon8(drop_7, axon8_states)
+        spike_l8, snn8_states = self.snn8(axon8_out, snn8_states)
 
-        axon2_out, axon2_states = self.axon2(drop_1, axon2_states)
-        spike_l2, snn2_states = self.snn2(axon2_out, snn2_states)
-
-        drop_2 = self.dropout2(spike_l2)
-
-        axon3_out, axon3_states = self.axon3(drop_2, axon3_states)
-        spike_l3, snn3_states = self.snn3(axon3_out, snn3_states)
-
-        return spike_l3
+        return spike_l8
 
 
 ########################### train function ###################################
