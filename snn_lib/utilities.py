@@ -151,6 +151,8 @@ def plot_raster_dot(spike_mat):
     plt.gca().invert_yaxis()
     plt.gca().set_xlim([0, w])
     plt.gca().set_ylim([0, h])
+    plt.xlabel('time')
+    plt.ylabel('input spike train index')
 
 def gaussian_filter_spike_train(spike_train, sigma):
     """
