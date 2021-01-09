@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 
-"""
-# File Name : snn_mlp_1.py
-# Author: Haowen Fang
-# Email: hfang02@syr.edu
-# Description: multi-layer snn for MNIST classification. Use dual exponential psp kernel.
-"""
-
 import argparse
 import pandas as pd
 import os
