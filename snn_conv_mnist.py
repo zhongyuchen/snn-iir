@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import argparse
 import pandas as pd
 import os
