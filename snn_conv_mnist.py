@@ -109,41 +109,41 @@ class mysnn(torch.nn.Module):
         self.membrane_filter = membrane_filter
 
         # 1
-        self.axon1 = dual_exp_iir_layer((28,28,1), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon1 = dual_exp_iir_layer((1, 28, 28), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv1 = conv2d_layer(
             h_input=28, w_input=28, in_channels=1, out_channels=32, kernel_size=3,
             stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
         # 2
-        self.axon2 = dual_exp_iir_layer((28, 28, 32), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon2 = dual_exp_iir_layer((32, 28, 28), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv2 = conv2d_layer(
             h_input=28, w_input=28, in_channels=32, out_channels=32, kernel_size=3,
             stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
         # 3
-        self.axon3 = dual_exp_iir_layer((28, 28, 32), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon3 = dual_exp_iir_layer((32, 28, 28), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv3 = conv2d_layer(
             h_input=28, w_input=28, in_channels=32, out_channels=64, kernel_size=3,
             stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
         # 4
-        self.axon4 = dual_exp_iir_layer((28, 28, 64), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon4 = dual_exp_iir_layer((64, 28, 28), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.pool4 = maxpooling2d_layer(
             h_input=28, w_input=28, in_channels=64, kernel_size=2,
             stride=2, padding=0, dilation=1, step_num=length, batch_size=batch_size
         )
         # 5
-        self.axon5 = dual_exp_iir_layer((14, 14, 64), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon5 = dual_exp_iir_layer((64, 14, 14), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv5 = conv2d_layer(
             h_input=14, w_input=14, in_channels=64, out_channels=64, kernel_size=3,
             stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
         # 6
-        self.axon6 = dual_exp_iir_layer((14, 14, 64), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon6 = dual_exp_iir_layer((64, 14, 14), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.pool6 = maxpooling2d_layer(
             h_input=14, w_input=14, in_channels=64, kernel_size=2,
             stride=2, padding=0, dilation=1, step_num=length, batch_size=batch_size
