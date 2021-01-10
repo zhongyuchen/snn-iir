@@ -34,7 +34,7 @@ from pprint import pprint
 
 
 if torch.cuda.is_available():
-    device = torch.device('cuda:3')
+    device = torch.device('cuda:2')
 else:
     device = torch.device('cpu')
 
