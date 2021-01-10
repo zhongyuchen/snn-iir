@@ -192,6 +192,8 @@ class mysnn(torch.nn.Module):
         axon6_states = self.axon6.create_init_states()
         axon6_out, axon6_states = self.axon6(spike_l5, axon6_states)
         spike_l6 = self.pool6(axon6_out)
+        # 6 -> 7
+        spike_l6 = spike_l6.view(spike_l6.shape[0], -1, spike_l6.shape[-1])
         # 7
         axon7_states = self.axon7.create_init_states()
         snn7_states = self.snn7.create_init_states()
