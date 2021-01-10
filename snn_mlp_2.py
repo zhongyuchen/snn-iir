@@ -94,7 +94,7 @@ else:
 
 # load mnist training dataset
 mnist_trainset = datasets.MNIST(root='./data', train=True, download=True, transform=rand_transform)
-
+mnist_trainset, mnist_devset = random_split(mnist_trainset, [50000, 10000], generator=torch.Generator().manual_seed(42))
 # load mnist test dataset
 mnist_testset = datasets.MNIST(root='./data', train=False, download=True, transform=None)
 
@@ -252,10 +252,13 @@ if __name__ == "__main__":
     scheduler = get_scheduler(optimizer, conf)
 
     train_data = MNISTDataset(mnist_trainset, max_rate=1, length=length, flatten=True)
-    train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
+    train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=False)
+
+    dev_data = MNISTDataset(mnist_devset, max_rate=1, length=length, flatten=True)
+    dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=True, drop_last=False)
 
     test_data = MNISTDataset(mnist_testset, max_rate=1, length=length, flatten=True)
-    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, drop_last=True)
+    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, drop_last=False)
 
     train_acc_list = []
     test_acc_list = []
@@ -289,7 +292,7 @@ if __name__ == "__main__":
 
             # test model
             snn.eval()
-            test_acc, test_loss = test(snn, test_dataloader, writer=None)
+            test_acc, test_loss = test(snn, dev_dataloader, writer=None)
 
             print('Test epoch: {}, acc: {}'.format(j, test_acc))
             test_acc_list.append(test_acc)
