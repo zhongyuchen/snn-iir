@@ -29,7 +29,7 @@ else:
 
 # arg parser
 parser = argparse.ArgumentParser(description='conv snn')
-parser.add_argument('--config_file', type=str, default='snn_conv_mnist.yaml',
+parser.add_argument('--config_file', type=str, default='snn_conv_1_mnist.yaml',
                     help='path to configuration file')
 parser.add_argument('--train', action='store_true',
                     help='train model')
