@@ -181,9 +181,9 @@ class mysnn(torch.nn.Module):
         spike_l3, conv3_states = self.conv3(axon3_out, conv3_states)
         # 4
         axon4_states = self.axon4.create_init_states()
-        conv4_states = self.conv4.create_init_states()
+        pool4_states = self.pool4.create_init_states()
         axon4_out, axon4_states = self.axon4(spike_l3, axon4_states)
-        spike_l4, conv4_states = self.pool4(axon4_out, conv4_states)
+        spike_l4, pool4_states = self.pool4(axon4_out, pool4_states)
         # 5
         axon5_states = self.axon5.create_init_states()
         conv5_states = self.conv5.create_init_states()
@@ -191,9 +191,9 @@ class mysnn(torch.nn.Module):
         spike_l5, conv5_states = self.conv5(axon5_out, conv5_states)
         # 6
         axon6_states = self.axon6.create_init_states()
-        conv6_states = self.conv6.create_init_states()
+        pool6_states = self.pool6.create_init_states()
         axon6_out, axon6_states = self.axon6(spike_l5, axon6_states)
-        spike_l6, conv6_states = self.pool6(axon6_out, conv6_states)
+        spike_l6, pool6_states = self.pool6(axon6_out, pool6_states)
         # 7
         axon7_states = self.axon7.create_init_states()
         snn7_states = self.snn7.create_init_states()
