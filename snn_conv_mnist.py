@@ -7,7 +7,7 @@ import sys
 import torch
 import numpy as np
 import random
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets
 from torchvision import transforms, utils
@@ -87,7 +87,7 @@ else:
 
 # load mnist training dataset
 mnist_trainset = datasets.MNIST(root='./data', train=True, download=True, transform=rand_transform)
-
+mnist_trainset, mnist_devset = random_split(mnist_trainset, [50000, 10000], generator=torch.Generator().manual_seed(42))
 # load mnist test dataset
 mnist_testset = datasets.MNIST(root='./data', train=False, download=True, transform=None)
 
@@ -305,6 +305,9 @@ if __name__ == "__main__":
     train_data = MNISTDataset(mnist_trainset, max_rate=1, length=length, flatten=True)
     train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
 
+    dev_data = MNISTDataset(mnist_devset, max_rate=1, length=length, flatten=True)
+    dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=True, drop_last=True)
+
     test_data = MNISTDataset(mnist_testset, max_rate=1, length=length, flatten=True)
     test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, drop_last=True)
 
@@ -340,7 +343,7 @@ if __name__ == "__main__":
 
             # test model
             snn.eval()
-            test_acc, test_loss = test(snn, test_dataloader, writer=None)
+            test_acc, test_loss = test(snn, dev_dataloader, writer=None)
 
             print('Test epoch: {}, acc: {}'.format(j, test_acc))
             test_acc_list.append(test_acc)
