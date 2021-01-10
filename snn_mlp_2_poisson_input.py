@@ -20,7 +20,7 @@ import random
 import matplotlib.pyplot as plt
 import importlib
 import matplotlib
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets
 from torchvision import transforms, utils
