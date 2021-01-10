@@ -304,13 +304,13 @@ if __name__ == "__main__":
     scheduler = get_scheduler(optimizer, conf)
 
     train_data = MNISTDataset(mnist_trainset, max_rate=1, length=length, flatten=True)
-    train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=False)
+    train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
 
     dev_data = MNISTDataset(mnist_devset, max_rate=1, length=length, flatten=True)
-    dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=True, drop_last=False)
+    dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=True, drop_last=True)
 
     test_data = MNISTDataset(mnist_testset, max_rate=1, length=length, flatten=True)
-    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, drop_last=False)
+    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, drop_last=True)
 
     train_acc_list = []
     test_acc_list = []
