@@ -98,6 +98,43 @@ class MNISTDataset(Dataset):
 
         return img, self.dataset[idx][1]
 
+
+class MNISTDataset(Dataset):
+    """mnist dataset
+
+    torchvision_mnist: dataset object
+    length: number of steps of snn
+    max_rate: a scale factor. MNIST pixel value is normalized to [0,1], and them multiply with this value
+    flatten: return 28x28 image or a flattened 1d vector
+    transform: transform
+    """
+
+    def __init__(self, torchvision_mnist, length, max_rate=1, flatten=False, transform=None):
+        self.dataset = torchvision_mnist
+        self.transform = transform
+        self.flatten = flatten
+        self.length = length
+        self.max_rate = max_rate
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        img = self.dataset[idx][0]
+        if self.transform:
+            img = self.transform(img)
+
+        img = np.array(self.dataset[idx][0], dtype=np.float32) / 255.0 * self.max_rate
+        shape = img.shape
+        img_spike = None
+        if self.flatten == True:
+            img = img.reshape(-1)
+
+        return img, self.dataset[idx][1]
+
 def get_rand_transform(transform_config):
     t1_size = transform_config['RandomResizedCrop']['size']
     t1_scale = transform_config['RandomResizedCrop']['scale']
