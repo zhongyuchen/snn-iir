@@ -39,7 +39,7 @@ parser.add_argument('--test', action='store_true',
 
 args = parser.parse_args()
 
-# %% config file 
+# %% config file
 if args.config_file is None:
     print('No config file provided, use default config file')
 else:
@@ -218,10 +218,8 @@ def train(model, optimizer, scheduler, train_data_loader, writer=None):
     model.train()
 
     for i_batch, sample_batched in enumerate(train_data_loader):
-
-        x_train = sample_batched[0]
+        x_train = sample_batched[0].to(device)
         target = sample_batched[1].to(device)
-        x_train = x_train.repeat(length, 1, 1).permute(1, 2, 0).to(device)
         out_spike = model(x_train)
 
         spike_count = torch.sum(out_spike, dim=2)
@@ -265,10 +263,8 @@ def test(model, test_data_loader, writer=None):
     criterion = torch.nn.CrossEntropyLoss()
 
     for i_batch, sample_batched in enumerate(test_data_loader):
-
-        x_test = sample_batched[0]
+        x_test = sample_batched[0].to(device)
         target = sample_batched[1].to(device)
-        x_test = x_test.repeat(length, 1, 1).permute(1, 2, 0).to(device)
         out_spike = model(x_test)
 
         spike_count = torch.sum(out_spike, dim=2)
