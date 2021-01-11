@@ -218,8 +218,8 @@ def train(model, optimizer, scheduler, train_data_loader, writer=None):
     model.train()
 
     for i_batch, sample_batched in enumerate(train_data_loader):
-        x_train = sample_batched[0].to(device)
-        target = sample_batched[1].to(device)
+        x_train = sample_batched[0]
+        target = sample_batched[1]
         out_spike = model(x_train)
 
         spike_count = torch.sum(out_spike, dim=2)
@@ -263,8 +263,8 @@ def test(model, test_data_loader, writer=None):
     criterion = torch.nn.CrossEntropyLoss()
 
     for i_batch, sample_batched in enumerate(test_data_loader):
-        x_test = sample_batched[0].to(device)
-        target = sample_batched[1].to(device)
+        x_test = sample_batched[0]
+        target = sample_batched[1]
         out_spike = model(x_test)
 
         spike_count = torch.sum(out_spike, dim=2)
@@ -312,6 +312,8 @@ if __name__ == "__main__":
     checkpoint_list = []
 
     if args.train == True:
+        train_dataloader.to(device)
+        dev_dataloader.to(device)
         train_it = 0
         test_it = 0
         for j in range(epoch):
@@ -366,7 +368,7 @@ if __name__ == "__main__":
         print('best checkpoint:', best_checkpoint)
 
     elif args.test == True:
-
+        test_dataloader.to(device)
         test_checkpoint = torch.load(test_checkpoint_path)
         snn.load_state_dict(test_checkpoint["snn_state_dict"])
 
