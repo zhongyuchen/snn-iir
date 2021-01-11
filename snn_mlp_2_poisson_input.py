@@ -257,7 +257,7 @@ if __name__ == "__main__":
     train_data = MNISTDataset_Poisson_Spike(mnist_trainset, max_rate=1, length=length, flatten=True)
     train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
 
-    dev_data = MNISTDataset(mnist_devset, max_rate=1, length=length, flatten=True)
+    dev_data = MNISTDataset_Poisson_Spike(mnist_devset, max_rate=1, length=length, flatten=True)
     dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
     test_data = MNISTDataset_Poisson_Spike(mnist_testset, max_rate=1, length=length, flatten=True)
