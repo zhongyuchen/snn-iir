@@ -138,7 +138,7 @@ def plot_raster(spike_mat, **kwargs):
 
     # plt.show()
 
-def plot_raster_dot(spike_mat):
+def plot_raster_dot(spike_mat, label=False):
     '''
     another function to plot spikes
     :param spike_mat: [row, length/time]
@@ -151,8 +151,9 @@ def plot_raster_dot(spike_mat):
     plt.gca().invert_yaxis()
     plt.gca().set_xlim([0, w])
     plt.gca().set_ylim([0, h])
-    plt.xlabel('time')
-    plt.ylabel('input spike train index')
+    if label is True:
+        plt.xlabel('time')
+        plt.ylabel('input spike train index')
 
 def gaussian_filter_spike_train(spike_train, sigma):
     """
