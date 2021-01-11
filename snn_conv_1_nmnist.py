@@ -307,10 +307,10 @@ if __name__ == "__main__":
     train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
 
     dev_data = MNISTDataset(mnist_devset, max_rate=1, length=length, flatten=True)
-    dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=True, drop_last=True)
+    dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
     test_data = MNISTDataset(mnist_testset, max_rate=1, length=length, flatten=True)
-    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, drop_last=True)
+    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
     train_acc_list = []
     test_acc_list = []
