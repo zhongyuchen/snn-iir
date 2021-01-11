@@ -23,7 +23,7 @@ from omegaconf import OmegaConf
 
 
 if torch.cuda.is_available():
-    device = torch.device('cuda:3')
+    device = torch.device('cuda:1')
 else:
     device = torch.device('cpu')
 
