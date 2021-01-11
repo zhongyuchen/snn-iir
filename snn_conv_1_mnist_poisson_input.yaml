@@ -1,6 +1,6 @@
 
 experiment_name:
-  snn_conv_1_mnist
+  snn_conv_1_mnist_poisson_input
 
 pytorch_seed:
   2
@@ -97,9 +97,9 @@ checkpoint_base_path:
 
 # the checkpoint used for test
 test_checkpoint_path:
-  ./checkpoint/checkpoint_snn_conv_1_mnist_99_20201028-181754
-  # ./checkpoint/pretrained_snn_conv_1_mnist
+  ./checkpoint/checkpoint_snn_conv_1_mnist_poisson_input_99_20201028-181754
+  # ./checkpoint/pretrained_snn_conv_1_mnist_poisson_input
 
 acc_file_name:
-  'snn_conv_1_mnist_acc.csv'
+  'snn_conv_1_mnist_poisson_input_acc.csv'
 

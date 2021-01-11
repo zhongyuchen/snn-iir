@@ -29,7 +29,7 @@ else:
 
 # arg parser
 parser = argparse.ArgumentParser(description='conv snn')
-parser.add_argument('--config_file', type=str, default='snn_conv_1_mnist.yaml',
+parser.add_argument('--config_file', type=str, default='snn_conv_1_mnist_poisson_input.yaml',
                     help='path to configuration file')
 parser.add_argument('--train', action='store_true',
                     help='train model')
@@ -302,14 +302,14 @@ if __name__ == "__main__":
 
     scheduler = get_scheduler(optimizer, conf)
 
-    train_data = MNISTDataset(mnist_trainset, max_rate=1, length=length, flatten=True)
-    train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=False)
+    train_data = MNISTDataset_Poisson_Spike(mnist_trainset, max_rate=1, length=length, flatten=True)
+    train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
 
-    dev_data = MNISTDataset(mnist_devset, max_rate=1, length=length, flatten=True)
-    dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=False)
+    dev_data = MNISTDataset_Poisson_Spike(mnist_devset, max_rate=1, length=length, flatten=True)
+    dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
-    test_data = MNISTDataset(mnist_testset, max_rate=1, length=length, flatten=True)
-    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=False)
+    test_data = MNISTDataset_Poisson_Spike(mnist_testset, max_rate=1, length=length, flatten=True)
+    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
     train_acc_list = []
     test_acc_list = []
