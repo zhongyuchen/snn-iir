@@ -348,10 +348,12 @@ if __name__ == "__main__":
     scheduler = get_scheduler(optimizer, conf)
 
     if args.load is True:
+        print('load dataloaders')
         train_dataloader = pickle.load(open('./data/N-MNIST/train.pkl', "rb"))
         dev_dataloader = pickle.load(open('./data/N-MNIST/dev.pkl', "rb"))
         test_dataloader = pickle.load(open('./data/N-MNIST/test.pkl', "rb"))
     else:
+        print('processing data')
         # load nmnist training dataset
         nmnist_trainset = NMNIST(root='./data/N-MNIST', train=True)
         nmnist_trainset, nmnist_devset = random_split(
