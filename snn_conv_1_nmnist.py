@@ -4,7 +4,6 @@ import os
 import time
 import sys
 import bitstring
-import pickle
 
 import torch
 import numpy as np
@@ -350,9 +349,9 @@ if __name__ == "__main__":
 
     if args.load is True:
         print('load dataloaders')
-        train_dataloader = pickle.load(open('./data/N-MNIST/train.pkl', "rb"))
-        dev_dataloader = pickle.load(open('./data/N-MNIST/dev.pkl', "rb"))
-        test_dataloader = pickle.load(open('./data/N-MNIST/test.pkl', "rb"))
+        train_dataloader = torch.load('./data/N-MNIST/train.pt')
+        dev_dataloader = torch.load('./data/N-MNIST/dev.pt')
+        test_dataloader = torch.load('./data/N-MNIST/test.pt')
     else:
         print('processing data')
         # load nmnist training dataset
@@ -372,9 +371,9 @@ if __name__ == "__main__":
         test_data = NMNISTDataset(nmnist_testset, length=length)
         test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
-        pickle.dump(train_dataloader, open('./data/N-MNIST/train.pkl', "wb"))
-        pickle.dump(dev_dataloader, open('./data/N-MNIST/dev.pkl', "wb"))
-        pickle.dump(test_dataloader, open('./data/N-MNIST/test.pkl', "wb"))
+        torch.save(train_dataloader, './data/N-MNIST/train.pt')
+        torch.save(dev_dataloader, './data/N-MNIST/dev.pt')
+        torch.save(test_dataloader, './data/N-MNIST/test.pt')
 
     train_acc_list = []
     test_acc_list = []
