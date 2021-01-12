@@ -138,14 +138,14 @@ class NMNISTDataset(Dataset):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        spike_train, label = self.dataset[idx]
+        spike_train, label = self.dataset[idx]  # [channel, x, y, t]
         spike_train_bin = []
         for i in range(spike_train.shape[-1] // self.length):
             s = spike_train[:, :, :, i*self.length:(i+1)*self.length].sum(axis=-1)
-            s = s.astype(bool)
+            s = s.astype(bool)  # [channel, x, y]
             spike_train_bin.append(s)
-        spike_train_bin = np.array(spike_train_bin)
-
+        spike_train_bin = np.array(spike_train_bin)  # [t, channel, x, y]
+        spike_train_bin = spike_train_bin.transpose(1, 2, 3, 0)
         return spike_train_bin, label
 
 
