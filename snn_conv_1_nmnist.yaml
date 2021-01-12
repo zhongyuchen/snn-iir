@@ -8,7 +8,7 @@ pytorch_seed:
 hyperparameters:
   # default parameters
   length:
-    25
+    30
   batch_size:
     64
   synapse_type:
@@ -61,31 +61,6 @@ scheduler:
       0.001
     step_size_up:
       2000
-
-transform:
-  RandomResizedCrop:
-    size:
-      28
-    scale:
-      - 0.85
-      - 1.0
-    ratio:
-      - 0.75
-      - 1.3333333333333333
-    interpolation:
-      2
-  RandomRotation:
-    angle:
-      15
-  RandomApply:
-    probability:
-      0.5
-
-mnist_config:
-  max_rate:
-    1
-  use_transform:
-    True
 
 # configs for saving checkpoint
 save_checkpoint:

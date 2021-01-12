@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import time
 import sys
+import bitstring
 
 import torch
 import numpy as np
@@ -10,7 +11,7 @@ import random
 from torch.utils.data import Dataset, DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets
-from torchvision import transforms, utils
+from torchvision import utils
 
 from snn_lib.snn_layers import *
 from snn_lib.optimizers import *
@@ -73,25 +74,78 @@ membrane_filter = hyperparam_conf['membrane_filter']
 train_bias = hyperparam_conf['train_bias']
 train_coefficients = hyperparam_conf['train_coefficients']
 
-# %% mnist config
-dataset_config = conf['mnist_config']
-max_rate = dataset_config['max_rate']
-use_transform = dataset_config['use_transform']
 
-# %% transform config
-if use_transform == True:
-    rand_transform = get_rand_transform(conf['transform'])
-else:
-    rand_transform = None
+class NMNIST(Dataset):
+    def __init__(self, root, train):
+        self.dataset = []
+        if train is True:
+            self.data_path = os.path.join(root, 'Train')
+        else:
+            self.data_path = os.path.join(root, 'Test')
+        for i in range(10):
+            self.dataset += self.process(number=i)
+        self.dataset = np.array(self.dataset)
 
-# load mnist training dataset
-mnist_trainset = datasets.MNIST(root='./data', train=True, download=True, transform=rand_transform)
-mnist_trainset, mnist_devset = random_split(mnist_trainset, [50000, 10000], generator=torch.Generator().manual_seed(42))
-# load mnist test dataset
-mnist_testset = datasets.MNIST(root='./data', train=False, download=True, transform=None)
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        return self.dataset[idx]
+
+    def process_sample(self, path):
+        with open(path, 'rb') as f:
+            b = bitstring.BitStream(f)
+            data = []
+            for _ in range(int(len(b) / 40)):
+                data.append(b.readlist('uint:8, uint:8, bool:1, int:23'))
+            spike_train = np.zeros((34, 34, 2, 300), dtype=bool)
+            for d in data:
+                if d[3] < 300000:
+                    d[3] = int(d[3] / 1000)  # change the unit of time to ms
+                    spike_train[tuple(d)] = True
+            spike_train = spike_train.transpose(2, 0, 1, 3)
+            return spike_train
+
+    def process(self, number):
+        dataset = []
+        file_list = []
+        for file in os.listdir(os.path.join(self.data_path, number)):
+            if file.startswith('.') is False and file.endswith('.bin') is True:
+                file_list.append(file)
+        for file in sorted(file_list):
+            sample = self.process_sample(path=file), number
+            dataset.append(sample)
+        return dataset
+
+
+# load nmnist training dataset
+nmnist_trainset = NMNIST(root='./data/N-MNIST', train=True)
+nmnist_trainset, nmnist_devset = random_split(nmnist_trainset, [50000, 10000], generator=torch.Generator().manual_seed(42))
+# load nmnist test dataset
+nmnist_testset = NMNIST(root='./data/N-MNIST', train=False)
 
 # acc file name
 acc_file_name = experiment_name + '_' + conf['acc_file_name']
+
+
+class NMNISTDataset(Dataset):
+    def __init__(self, dataset, length):
+        self.dataset = dataset
+        self.length = length
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        spike_train, label = self.dataset[idx]
+        spike_train_bin = []
+        for i in range(spike_tran.shape[3] // self.length):
+            s = spike_train[:, :, :, i*self.length:(i+1)*self.length].sum(axis=3)
+            s = s.astype(bool)
+            spike_train_bin.append(s)
+        spike_train_bin = np.array(spike_train_bin)
+
+        return spike_train_bin, label
 
 
 # %% define model
@@ -107,9 +161,9 @@ class mysnn(torch.nn.Module):
         self.membrane_filter = membrane_filter
 
         # 1
-        self.axon1 = dual_exp_iir_layer((1, 28, 28), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon1 = dual_exp_iir_layer((2, 28, 28), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv1 = conv2d_layer(
-            h_input=28, w_input=28, in_channels=1, out_channels=32, kernel_size=3,
+            h_input=28, w_input=28, in_channels=2, out_channels=32, kernel_size=3,
             stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
@@ -148,21 +202,18 @@ class mysnn(torch.nn.Module):
         )
         # 7
         self.axon7 = dual_exp_iir_layer((7 * 7 * 64,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.snn7 = neuron_layer(7 * 7 * 64, 512, self.length, self.batch_size, tau_m, self.train_bias,
+        self.snn7 = neuron_layer(7 * 7 * 64, 256, self.length, self.batch_size, tau_m, self.train_bias,
                                  self.membrane_filter)
         self.dropout7 = torch.nn.Dropout(p=0.3, inplace=False)
         # 8
-        self.axon8 = dual_exp_iir_layer((512,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.snn8 = neuron_layer(512, 10, self.length, self.batch_size, tau_m, self.train_bias, self.membrane_filter)
+        self.axon8 = dual_exp_iir_layer((256,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.snn8 = neuron_layer(256, 10, self.length, self.batch_size, tau_m, self.train_bias, self.membrane_filter)
 
     def forward(self, inputs):
         """
-        :param inputs: [batch, input_size(784), t] -> [batch, 1, 28, 28, t]
+        :param inputs: [batch, 2, 28, 28, t]
         :return:
         """
-        inputs = inputs.view(-1, 28, 28, inputs.shape[2])
-        inputs = inputs.unsqueeze(1)
-
         # 1
         axon1_states = self.axon1.create_init_states()
         conv1_states = self.conv1.create_init_states()
@@ -303,13 +354,13 @@ if __name__ == "__main__":
 
     scheduler = get_scheduler(optimizer, conf)
 
-    train_data = MNISTDataset(mnist_trainset, max_rate=1, length=length, flatten=True)
+    train_data = NMNISTDataset(nmnist_trainset, length=length)
     train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
 
-    dev_data = MNISTDataset(mnist_devset, max_rate=1, length=length, flatten=True)
+    dev_data = NMNISTDataset(nmnist_devset, length=length)
     dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
-    test_data = MNISTDataset(mnist_testset, max_rate=1, length=length, flatten=True)
+    test_data = NMNISTDataset(nmnist_testset, length=length)
     test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
     train_acc_list = []
