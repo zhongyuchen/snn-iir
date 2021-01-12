@@ -145,7 +145,7 @@ class NMNISTDataset(Dataset):
             s = s.astype(bool)  # [channel, x, y]
             spike_train_bin.append(s)
         spike_train_bin = np.array(spike_train_bin)  # [t, channel, x, y]
-        spike_train_bin = spike_train_bin.transpose(1, 2, 3, 0)
+        spike_train_bin = spike_train_bin.transpose(1, 2, 3, 0)  # [channel, x, y, t]
         return spike_train_bin, label
 
 
