@@ -140,8 +140,8 @@ class NMNISTDataset(Dataset):
     def __getitem__(self, idx):
         spike_train, label = self.dataset[idx]
         spike_train_bin = []
-        for i in range(spike_train.shape[3] // self.length):
-            s = spike_train[:, :, :, i*self.length:(i+1)*self.length].sum(axis=3)
+        for i in range(spike_train.shape[-1] // self.length):
+            s = spike_train[:, :, :, i*self.length:(i+1)*self.length].sum(axis=-1)
             s = s.astype(bool)
             spike_train_bin.append(s)
         spike_train_bin = np.array(spike_train_bin)
