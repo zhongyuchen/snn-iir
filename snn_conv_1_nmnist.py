@@ -109,11 +109,12 @@ class NMNIST(Dataset):
     def process(self, number):
         dataset = []
         file_list = []
-        for file in os.listdir(os.path.join(self.data_path, number)):
+        path = os.path.join(self.data_path, str(number))
+        for file in os.listdir(path):
             if file.startswith('.') is False and file.endswith('.bin') is True:
                 file_list.append(file)
         for file in sorted(file_list):
-            sample = self.process_sample(path=file), number
+            sample = self.process_sample(path=os.path.join(path, file)), number
             dataset.append(sample)
         return dataset
 
