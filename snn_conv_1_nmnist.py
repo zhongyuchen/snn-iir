@@ -101,6 +101,7 @@ class NMNIST(Dataset):
             spike_train = np.zeros((34, 34, 2, 300), dtype=bool)
             for d in data:
                 if d[3] < 300000:
+                    d[2] *= 1
                     d[3] = int(d[3] / 1000)  # change the unit of time to ms
                     spike_train[tuple(d)] = True
             spike_train = spike_train.transpose(2, 0, 1, 3)
