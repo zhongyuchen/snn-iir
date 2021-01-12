@@ -31,6 +31,10 @@ python snn_mlp_2_poisson_input.py --train
 
 ### Associative Memory
 
+|experiment|train|dev|test|paper|
+|----------|-----|---|----|-----|
+|associative_memory|0.0031(93)|0.00369(92)|0.0042(92)|-|
+
 ### Vision Tasks
 
 |experiment|train|dev|test|paper|
@@ -40,7 +44,7 @@ python snn_mlp_2_poisson_input.py --train
 |snn_mlp_1_poisson_input|99.208(98)|98.628(98)|98.928(98)|-|
 |snn_mlp_2|99.3(72)|98.66(72)|98.96(72)|-|
 |snn_mlp_2_poisson_input|99.284(96)|98.748(96)|98.978(96)|-|
-|snn_conv_1_mnist|-|-|-|-|
+|snn_conv_1_mnist|99.84(99)|99.47(99)|99.59(99)|-|
 |snn_conv_1_poisson_input|-|-|-|-|
 |snn_conv_1_nmnist|-|-|-|-|
 
