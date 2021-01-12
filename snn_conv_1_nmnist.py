@@ -4,6 +4,7 @@ import os
 import time
 import sys
 import bitstring
+import multiprocessing
 
 import torch
 import numpy as np
@@ -80,14 +81,13 @@ acc_file_name = experiment_name + '_' + conf['acc_file_name']
 
 
 class NMNIST(Dataset):
-    def __init__(self, root, train):
-        self.dataset = []
+    def __init__(self, root, train, thread):
         if train is True:
             self.data_path = os.path.join(root, 'Train')
         else:
             self.data_path = os.path.join(root, 'Test')
-        for i in range(10):
-            self.dataset += self.process(number=i)
+        self.thread = thread
+        self.dataset = self.process()
 
     def __len__(self):
         return len(self.dataset)
@@ -95,7 +95,8 @@ class NMNIST(Dataset):
     def __getitem__(self, idx):
         return self.dataset[idx]
 
-    def process_sample(self, path):
+    @staticmethod
+    def process_sample(path):
         print('process:', path)
         with open(path, 'rb') as f:
             b = bitstring.BitStream(f)
@@ -111,17 +112,21 @@ class NMNIST(Dataset):
             spike_train = spike_train.transpose(2, 0, 1, 3)
             return spike_train
 
-    def process(self, number):
-        dataset = []
-        file_list = []
-        path = os.path.join(self.data_path, str(number))
-        for file in os.listdir(path):
-            if file.startswith('.') is False and file.endswith('.bin') is True:
-                file_list.append(file)
-        for file in sorted(file_list):
-            sample = self.process_sample(path=os.path.join(path, file)), number
-            dataset.append(sample)
-        return dataset
+    def process(self):
+        pool = multiprocessing.Pool(processes=self.thread)
+        result = []
+        for number in range(10):
+            file_list = []
+            path = os.path.join(self.data_path, str(number))
+            for file in os.listdir(path):
+                if file.startswith('.') is False and file.endswith('.bin') is True:
+                    file_list.append(file)
+            for file in sorted(file_list):
+                res = pool.apply_async(self.process_sample, args=(os.path.join(path, file), ))
+                result.append(res)
+        pool.close()
+        pool.join()
+        return [res.get() for res in result]
 
 
 class NMNISTDataset(Dataset):
@@ -359,7 +364,7 @@ if __name__ == "__main__":
             dev_dataloader = torch.load('./data/N-MNIST/dev.pt')
         else:
             # load nmnist training dataset
-            nmnist_trainset = NMNIST(root='./data/N-MNIST', train=True)
+            nmnist_trainset = NMNIST(root='./data/N-MNIST', train=True, thread=128)
             nmnist_trainset, nmnist_devset = random_split(
                 nmnist_trainset, [50000, 10000], generator=torch.Generator().manual_seed(42)
             )
@@ -430,7 +435,7 @@ if __name__ == "__main__":
         else:
             print('processing data')
             # load nmnist test dataset
-            nmnist_testset = NMNIST(root='./data/N-MNIST', train=False)
+            nmnist_testset = NMNIST(root='./data/N-MNIST', train=False, thread=128)
             test_data = NMNISTDataset(nmnist_testset, length=length)
             test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
             torch.save(test_dataloader, './data/N-MNIST/test.pt')
