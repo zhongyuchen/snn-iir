@@ -36,6 +36,7 @@ parser.add_argument('--train', action='store_true',
 
 parser.add_argument('--test', action='store_true',
                     help='test model')
+parser.add_argument('--load', action='store_true', help='load dataloader')
 
 args = parser.parse_args()
 
@@ -73,6 +74,9 @@ membrane_filter = hyperparam_conf['membrane_filter']
 
 train_bias = hyperparam_conf['train_bias']
 train_coefficients = hyperparam_conf['train_coefficients']
+
+# acc file name
+acc_file_name = experiment_name + '_' + conf['acc_file_name']
 
 
 class NMNIST(Dataset):
@@ -118,16 +122,6 @@ class NMNIST(Dataset):
             sample = self.process_sample(path=os.path.join(path, file)), number
             dataset.append(sample)
         return dataset
-
-
-# load nmnist training dataset
-nmnist_trainset = NMNIST(root='./data/N-MNIST', train=True)
-nmnist_trainset, nmnist_devset = random_split(nmnist_trainset, [50000, 10000], generator=torch.Generator().manual_seed(42))
-# load nmnist test dataset
-nmnist_testset = NMNIST(root='./data/N-MNIST', train=False)
-
-# acc file name
-acc_file_name = experiment_name + '_' + conf['acc_file_name']
 
 
 class NMNISTDataset(Dataset):
@@ -354,14 +348,31 @@ if __name__ == "__main__":
 
     scheduler = get_scheduler(optimizer, conf)
 
-    train_data = NMNISTDataset(nmnist_trainset, length=length)
-    train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
+    if args.load is True:
+        train_dataloader = pickle.load(open('./data/N-MNIST/train.pkl', "rb"))
+        dev_dataloader = pickle.load(open('./data/N-MNIST/dev.pkl', "rb"))
+        test_dataloader = pickle.load(open('./data/N-MNIST/test.pkl', "rb"))
+    else:
+        # load nmnist training dataset
+        nmnist_trainset = NMNIST(root='./data/N-MNIST', train=True)
+        nmnist_trainset, nmnist_devset = random_split(
+            nmnist_trainset, [50000, 10000], generator=torch.Generator().manual_seed(42)
+        )
+        # load nmnist test dataset
+        nmnist_testset = NMNIST(root='./data/N-MNIST', train=False)
 
-    dev_data = NMNISTDataset(nmnist_devset, length=length)
-    dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
+        train_data = NMNISTDataset(nmnist_trainset, length=length)
+        train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
 
-    test_data = NMNISTDataset(nmnist_testset, length=length)
-    test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
+        dev_data = NMNISTDataset(nmnist_devset, length=length)
+        dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
+
+        test_data = NMNISTDataset(nmnist_testset, length=length)
+        test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
+
+        pickle.dump(train_dataloader, open('./data/N-MNIST/train.pkl', "wb"))
+        pickle.dump(dev_dataloader, open('./data/N-MNIST/dev.pkl', "wb"))
+        pickle.dump(test_dataloader, open('./data/N-MNIST/test.pkl', "wb"))
 
     train_acc_list = []
     test_acc_list = []
