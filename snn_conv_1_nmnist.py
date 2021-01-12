@@ -123,10 +123,10 @@ class NMNIST(Dataset):
                     file_list.append(file)
             for file in sorted(file_list):
                 res = pool.apply_async(self.process_sample, args=(os.path.join(path, file), ))
-                result.append(res)
+                result.append((res, number))
         pool.close()
         pool.join()
-        return [res.get() for res in result]
+        return [(res.get(), number) for res, number in result]
 
 
 class NMNISTDataset(Dataset):
