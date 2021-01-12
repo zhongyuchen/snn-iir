@@ -88,7 +88,6 @@ class NMNIST(Dataset):
             self.data_path = os.path.join(root, 'Test')
         for i in range(10):
             self.dataset += self.process(number=i)
-        self.dataset = np.array(self.dataset)
 
     def __len__(self):
         return len(self.dataset)
