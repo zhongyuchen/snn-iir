@@ -141,7 +141,7 @@ class NMNISTDataset(Dataset):
     def __getitem__(self, idx):
         spike_train, label = self.dataset[idx]
         spike_train_bin = []
-        for i in range(spike_tran.shape[3] // self.length):
+        for i in range(spike_train.shape[3] // self.length):
             s = spike_train[:, :, :, i*self.length:(i+1)*self.length].sum(axis=3)
             s = s.astype(bool)
             spike_train_bin.append(s)
@@ -163,48 +163,48 @@ class mysnn(torch.nn.Module):
         self.membrane_filter = membrane_filter
 
         # 1
-        self.axon1 = dual_exp_iir_layer((2, 28, 28), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon1 = dual_exp_iir_layer((2, 34, 34), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv1 = conv2d_layer(
-            h_input=28, w_input=28, in_channels=2, out_channels=32, kernel_size=3,
+            h_input=34, w_input=34, in_channels=2, out_channels=32, kernel_size=3,
             stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
         # 2
-        self.axon2 = dual_exp_iir_layer((32, 28, 28), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon2 = dual_exp_iir_layer((32, 34, 34), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv2 = conv2d_layer(
-            h_input=28, w_input=28, in_channels=32, out_channels=32, kernel_size=3,
+            h_input=34, w_input=34, in_channels=32, out_channels=32, kernel_size=3,
             stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
         # 3
-        self.axon3 = dual_exp_iir_layer((32, 28, 28), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon3 = dual_exp_iir_layer((32, 34, 34), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv3 = conv2d_layer(
-            h_input=28, w_input=28, in_channels=32, out_channels=64, kernel_size=3,
+            h_input=34, w_input=34, in_channels=32, out_channels=64, kernel_size=3,
             stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
         # 4
-        self.axon4 = dual_exp_iir_layer((64, 28, 28), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon4 = dual_exp_iir_layer((64, 34, 34), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.pool4 = maxpooling2d_layer(
-            h_input=28, w_input=28, in_channels=64, kernel_size=2,
-            stride=2, padding=0, dilation=1, step_num=length, batch_size=batch_size
+            h_input=34, w_input=34, in_channels=64, kernel_size=2,
+            stride=2, padding=1, dilation=1, step_num=length, batch_size=batch_size
         )
         # 5
-        self.axon5 = dual_exp_iir_layer((64, 14, 14), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon5 = dual_exp_iir_layer((64, 18, 18), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv5 = conv2d_layer(
-            h_input=14, w_input=14, in_channels=64, out_channels=64, kernel_size=3,
+            h_input=18, w_input=18, in_channels=64, out_channels=64, kernel_size=3,
             stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
         # 6
-        self.axon6 = dual_exp_iir_layer((64, 14, 14), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.axon6 = dual_exp_iir_layer((64, 18, 18), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.pool6 = maxpooling2d_layer(
-            h_input=14, w_input=14, in_channels=64, kernel_size=2,
+            h_input=18, w_input=18, in_channels=64, kernel_size=2,
             stride=2, padding=0, dilation=1, step_num=length, batch_size=batch_size
         )
         # 7
-        self.axon7 = dual_exp_iir_layer((7 * 7 * 64,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.snn7 = neuron_layer(7 * 7 * 64, 256, self.length, self.batch_size, tau_m, self.train_bias,
+        self.axon7 = dual_exp_iir_layer((9 * 9 * 64,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.snn7 = neuron_layer(9 * 9 * 64, 256, self.length, self.batch_size, tau_m, self.train_bias,
                                  self.membrane_filter)
         self.dropout7 = torch.nn.Dropout(p=0.3, inplace=False)
         # 8
@@ -213,7 +213,7 @@ class mysnn(torch.nn.Module):
 
     def forward(self, inputs):
         """
-        :param inputs: [batch, 2, 28, 28, t]
+        :param inputs: [batch, 2, 34, 34, t]
         :return:
         """
         # 1
@@ -275,7 +275,6 @@ def train(model, optimizer, scheduler, train_data_loader, writer=None):
 
         x_train = sample_batched[0]
         target = sample_batched[1].to(device)
-        x_train = x_train.repeat(length, 1, 1).permute(1, 2, 0).to(device)
         out_spike = model(x_train)
 
         spike_count = torch.sum(out_spike, dim=2)
@@ -321,7 +320,6 @@ def test(model, test_data_loader, writer=None):
     for i_batch, sample_batched in enumerate(test_data_loader):
         x_test = sample_batched[0]
         target = sample_batched[1].to(device)
-        x_test = x_test.repeat(length, 1, 1).permute(1, 2, 0).to(device)
         out_spike = model(x_test)
 
         spike_count = torch.sum(out_spike, dim=2)
