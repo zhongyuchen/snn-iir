@@ -96,6 +96,7 @@ class NMNIST(Dataset):
         return self.dataset[idx]
 
     def process_sample(self, path):
+        print('process:', path)
         with open(path, 'rb') as f:
             b = bitstring.BitStream(f)
             data = []
@@ -357,7 +358,6 @@ if __name__ == "__main__":
             train_dataloader = torch.load('./data/N-MNIST/train.pt')
             dev_dataloader = torch.load('./data/N-MNIST/dev.pt')
         else:
-            print('processing data')
             # load nmnist training dataset
             nmnist_trainset = NMNIST(root='./data/N-MNIST', train=True)
             nmnist_trainset, nmnist_devset = random_split(
