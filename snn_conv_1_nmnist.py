@@ -103,13 +103,13 @@ class NMNIST(Dataset):
             data = []
             for _ in range(int(len(b) / 40)):
                 data.append(b.readlist('uint:8, uint:8, bool:1, int:23'))
-            spike_train = np.zeros((34, 34, 2, 300), dtype=bool)
+            spike_train = np.zeros((34, 34, 2, 300), dtype=bool)  # [x, y, channel, t]
             for d in data:
                 if d[3] < 300000:
                     d[2] *= 1  # True event -> channel 1, False event -> chennel 0
                     d[3] = int(d[3] / 1000)  # change the unit of time to ms
                     spike_train[tuple(d)] = True
-            spike_train = spike_train.transpose(2, 0, 1, 3)
+            spike_train = spike_train.transpose(2, 0, 1, 3)  # [channel, x, y, t]
             return spike_train
 
     def process(self):
@@ -140,8 +140,9 @@ class NMNISTDataset(Dataset):
     def __getitem__(self, idx):
         spike_train, label = self.dataset[idx]  # [channel, x, y, t]
         spike_train_bin = []
-        for i in range(spike_train.shape[-1] // self.length):
-            s = spike_train[:, :, :, i*self.length:(i+1)*self.length].sum(axis=-1)
+        bin_width = spike_train.shape[-1] // self.length
+        for i in range(self.length):
+            s = spike_train[:, :, :, i*bin_width:(i+1)*bin_width].sum(axis=-1)
             s = s.astype(bool)  # [channel, x, y]
             spike_train_bin.append(s)
         spike_train_bin = np.array(spike_train_bin)  # [t, channel, x, y]
