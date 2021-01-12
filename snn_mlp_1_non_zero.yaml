@@ -97,7 +97,7 @@ checkpoint_base_path:
 
 # the checkpoint used for test
 test_checkpoint_path:
-  ./checkpoint/checkpoint_snn_mlp_1_non_zero_69_20210107-162613
+  ./checkpoint/checkpoint_snn_mlp_1_non_zero_93_20210111-145608
   # ./checkpoint/pretrained_snn_mlp_1
 
 acc_file_name:

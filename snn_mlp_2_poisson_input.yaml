@@ -93,7 +93,7 @@ checkpoint_base_path:
 
 # the checkpoint used for test
 test_checkpoint_path:
-  ./checkpoint/checkpoint_snn_mlp_2_poisson_input_92_20210107-221808
+  ./checkpoint/checkpoint_snn_mlp_2_poisson_input_96_20210112-004922
   # ./checkpoint/pretrained_snn_mlp_2_poisson_input
 
 acc_file_name:
