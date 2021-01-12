@@ -4,6 +4,7 @@ import os
 import time
 import sys
 import bitstring
+import pickle
 
 import torch
 import numpy as np
