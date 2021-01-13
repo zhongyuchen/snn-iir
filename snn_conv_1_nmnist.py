@@ -114,7 +114,7 @@ class NMNISTDataset(Dataset):
         bin_width = 300 // self.length
         t = t // bin_width
         spike_train = torch.zeros((2, 34, 34, self.length + 1), dtype=torch.bool)  # [p, x, y, t]
-        spike_trian[p, x, y, t] = True
+        spike_train[p, x, y, t] = True
         spike_train = spike_train[:, :, :, 0:self.length]
         return spike_train  # [p, x, y, t]
 
