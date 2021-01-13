@@ -119,7 +119,7 @@ class NMNISTDataset(Dataset):
         return spike_train  # [p, x, y, t]
 
     def get_dataset(self):
-        pool = multiprocessing.Pool(processes=self.thread)
+        # pool = multiprocessing.Pool(processes=self.thread)
         result_x = []
         result_y = []
         for number in range(10):
@@ -129,12 +129,14 @@ class NMNISTDataset(Dataset):
                 if file.startswith('.') is False and file.endswith('.bin') is True:
                     file_list.append(file)
             for file in sorted(file_list):
-                res = pool.apply_async(self.get_event, args=(os.path.join(path, file), ))
-                result_x.append(res)
+                # res = pool.apply_async(self.get_event, args=(os.path.join(path, file), ))
+                # result_x.append(res)
+                result_x.append(self.get_event(os.path.join(path, file)))
                 result_y.append(number)
-        pool.close()
-        pool.join()
-        result_x = [self.get_spike_train(res.get()) for res in result_x]
+        # pool.close()
+        # pool.join()
+        # result_x = [self.get_spike_train(res.get()) for res in result_x]
+        result_x = [self.get_spike_train(res) for res in result_x]
         return torch.tensor(result_x), torch.tensor(result_y)
 
 
@@ -356,6 +358,7 @@ if __name__ == "__main__":
         else:
             # load nmnist training dataset
             train_data = NMNISTDataset(root='./data/N-MNIST', train=True, thread=thread, length=length)
+            print('train_data', len(train_data))
             train_data, dev_data = random_split(
                 train_data, [50000, 10000], generator=torch.Generator().manual_seed(42)
             )
@@ -425,6 +428,7 @@ if __name__ == "__main__":
             print('processing data')
             # load nmnist test dataset
             test_data = NMNISTDataset(root='./data/N-MNIST', train=False, thread=thread, length=length)
+            print('test_data', len(test_data))
             test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
             torch.save(test_dataloader, './data/N-MNIST/test.pt')
 
