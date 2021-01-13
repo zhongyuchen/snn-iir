@@ -97,7 +97,7 @@ class NMNISTDataset(Dataset):
         return self.dataset[idx]
 
     @staticmethod
-    def process_sample(path):
+    def get_event(path):
         print('process:', path)
         with open(path, 'rb') as f:
             data = np.uint32(np.fromfile(f, dtype=np.uint8))
@@ -106,16 +106,16 @@ class NMNISTDataset(Dataset):
             pt = data[2::5]
             p = (pt & 128) >> 7
             t = ((pt & 127) << 16) | (data[3::5] << 8) | (data[4::5])
-            data = np.stack([x, y, p, t], axis=1)
-            spike_train = torch.zeros((34, 34, 2, 300), dtype=torch.bool)  # [x, y, channel, t]
-            for d in data:
-                d[3] = int(d[3] / 1000)  # change the unit of time to ms
-                if d[3] < 300:
-                    d[2] *= 1  # True event -> channel 1, False event -> chennel 0
-                    spike_train[tuple(d)] = True
-            return spike_train
+            event = np.stack([x, y, p, t], axis=1)
+            return event
 
-    def process_spike_train(self, spike_train):
+    def get_spike_train(self, event):
+        spike_train = torch.zeros((34, 34, 2, 300), dtype=torch.bool)  # [x, y, channel, t]
+        for e in event:
+            e[3] = int(e[3] / 1000)  # change the unit of time to ms
+            if e[3] < 300:
+                e[2] *= 1  # True event -> channel 1, False event -> chennel 0
+                spike_train[tuple(e)] = True
         spike_train_bin = []
         bin_width = spike_train.shape[-1] // self.length
         for i in range(self.length):
@@ -134,11 +134,11 @@ class NMNISTDataset(Dataset):
                 if file.startswith('.') is False and file.endswith('.bin') is True:
                     file_list.append(file)
             for file in sorted(file_list):
-                res = pool.apply_async(self.process_sample, args=(os.path.join(path, file), ))
+                res = pool.apply_async(self.get_event, args=(os.path.join(path, file), ))
                 result.append((res, number))
         pool.close()
         pool.join()
-        return [(self.process_spike_train(res.get()), number) for res, number in result]
+        return [(self.get_spike_train(res.get()), number) for res, number in result]
 
 
 # %% define model
