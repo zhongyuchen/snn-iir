@@ -29,7 +29,7 @@ else:
 
 # arg parser
 parser = argparse.ArgumentParser(description='conv snn')
-parser.add_argument('--config_file', type=str, default='snn_conv_1_nmnist.yaml',
+parser.add_argument('--config_file', type=str, default='snn_conv_1_gesture.yaml',
                     help='path to configuration file')
 parser.add_argument('--train', action='store_true',
                     help='train model')
@@ -79,9 +79,9 @@ train_coefficients = hyperparam_conf['train_coefficients']
 acc_file_name = experiment_name + '_' + conf['acc_file_name']
 
 
-class NMNISTDataset(Dataset):
+class GestureDataset(Dataset):
     def __init__(self, root, train, thread, length):
-        super(NMNISTDataset, self).__init__()
+        super(GestureDataset, self).__init__()
         if train is True:
             self.data_path = os.path.join(root, 'Train')
         else:
@@ -353,16 +353,16 @@ if __name__ == "__main__":
     if args.train == True:
         if args.load is True:
             print('load data')
-            train_data = torch.load('./data/N-MNIST/train_data.pt')
-            dev_data = torch.load('./data/N-MNIST/dev_data.pt')
+            train_data = torch.load('./data/DVS-Gesture-dataset/train_data.pt')
+            dev_data = torch.load('./data/DVS-Gesture-dataset/dev_data.pt')
         else:
             print('process data')
-            train_data = NMNISTDataset(root='./data/N-MNIST', train=True, thread=thread, length=length)
+            train_data = GestureDataset(root='./data/DVS-Gesture-dataset', train=True, thread=thread, length=length)
             train_data, dev_data = random_split(
                 train_data, [50000, 10000], generator=torch.Generator().manual_seed(42)
             )
-            torch.save(train_data, './data/N-MNIST/train_data.pt')
-            torch.save(dev_data, './data/N-MNIST/dev_data.pt')
+            torch.save(train_data, './data/DVS-Gesture-dataset/train_data.pt')
+            torch.save(dev_data, './data/DVS-Gesture-dataset/dev_data.pt')
         print('train_data', len(train_data), 'dev_data', len(dev_data))
         train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
         dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
@@ -423,11 +423,11 @@ if __name__ == "__main__":
     elif args.test == True:
         if args.load is True:
             print('load data')
-            test_data = torch.load('./data/N-MNIST/test_data.pt')
+            test_data = torch.load('./data/DVS-Gesture-dataset/test_data.pt')
         else:
             print('process data')
-            test_data = NMNISTDataset(root='./data/N-MNIST', train=False, thread=thread, length=length)
-            torch.save(test_data, './data/N-MNIST/test_data.pt')
+            test_data = GestureDataset(root='./data/DVS-Gesture-dataset', train=False, thread=thread, length=length)
+            torch.save(test_data, './data/DVS-Gesture-dataset/test_data.pt')
         print('test_data', len(test_data))
         test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
