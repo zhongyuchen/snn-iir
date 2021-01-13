@@ -3,7 +3,7 @@ import pandas as pd
 import os
 import time
 import sys
-# import multiprocessing
+import multiprocessing
 
 import torch
 import numpy as np
