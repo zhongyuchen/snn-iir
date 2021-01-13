@@ -3,7 +3,6 @@ import pandas as pd
 import os
 import time
 import sys
-import bitstring
 import multiprocessing
 
 import torch
@@ -101,17 +100,20 @@ class NMNISTDataset(Dataset):
     def process_sample(path):
         print('process:', path)
         with open(path, 'rb') as f:
-            b = bitstring.BitStream(f)
-            data = []
-            for _ in range(int(len(b) / 40)):
-                data.append(b.readlist('uint:8, uint:8, bool:1, int:23'))
+            data = np.uint32(np.fromfile(f, dtype=np.uint8))
+            x = data[0::5]
+            y = data[1::5]
+            pt = data[2::5]
+            p = (pt & 128) >> 7
+            t = ((pt & 127) << 16) | (data[3::5] << 8) | (data[4::5])
+            data = np.stack([x, y, p, t], axis=1)
             spike_train = torch.zeros((34, 34, 2, 300), dtype=torch.bool)  # [x, y, channel, t]
             for d in data:
                 d[3] = int(d[3] / 1000)  # change the unit of time to ms
                 if d[3] < 300:
                     d[2] *= 1  # True event -> channel 1, False event -> chennel 0
                     spike_train[tuple(d)] = True
-            return data
+            return spike_train
 
     def process_spike_train(self, spike_train):
         spike_train_bin = []
