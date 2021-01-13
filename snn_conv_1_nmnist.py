@@ -80,14 +80,16 @@ train_coefficients = hyperparam_conf['train_coefficients']
 acc_file_name = experiment_name + '_' + conf['acc_file_name']
 
 
-class NMNIST(Dataset):
-    def __init__(self, root, train, thread):
+class NMNISTDataset(Dataset):
+    def __init__(self, root, train, thread, length):
+        super(NMNISTDataset, self).__init__()
         if train is True:
             self.data_path = os.path.join(root, 'Train')
         else:
             self.data_path = os.path.join(root, 'Test')
         self.thread = thread
-        self.dataset = self.process()
+        self.length = length
+        self.dataset = self.get_dataset()
 
     def __len__(self):
         return len(self.dataset)
@@ -96,23 +98,28 @@ class NMNIST(Dataset):
         return self.dataset[idx]
 
     @staticmethod
-    def process_sample(path):
+    def process_sample(path, length):
         print('process:', path)
         with open(path, 'rb') as f:
             b = bitstring.BitStream(f)
             data = []
             for _ in range(int(len(b) / 40)):
                 data.append(b.readlist('uint:8, uint:8, bool:1, int:23'))
-            spike_train = np.zeros((34, 34, 2, 300), dtype=bool)  # [x, y, channel, t]
+            spike_train = torch.zeros((34, 34, 2, 300), dtype=torch.bool)  # [x, y, channel, t]
             for d in data:
-                if d[3] < 300000:
+                d[3] = int(d[3] / 1000)  # change the unit of time to ms
+                if d[3] < 300:
                     d[2] *= 1  # True event -> channel 1, False event -> chennel 0
-                    d[3] = int(d[3] / 1000)  # change the unit of time to ms
                     spike_train[tuple(d)] = True
-            spike_train = spike_train.transpose(2, 0, 1, 3)  # [channel, x, y, t]
-            return spike_train
+            spike_train_bin = []
+            bin_width = spike_train.shape[-1] // length
+            for i in range(length):
+                s = spike_train[:, :, :, i * bin_width:(i + 1) * bin_width].sum(axis=3, dtype=torch.bool)
+                spike_train_bin.append(s)  # [x, y, channel]
+            spike_train_bin = torch.stack(spike_train_bin, dim=3)  # [x, y, channel, t]
+            return spike_train_bin.transpose(2, 0, 1, 3)  # [channel, x, y, t]
 
-    def process(self):
+    def get_dataset(self):
         pool = multiprocessing.Pool(processes=self.thread)
         result = []
         for number in range(10):
@@ -127,27 +134,6 @@ class NMNIST(Dataset):
         pool.close()
         pool.join()
         return [(res.get(), number) for res, number in result]
-
-
-class NMNISTDataset(Dataset):
-    def __init__(self, dataset, length):
-        self.dataset = dataset
-        self.length = length
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        spike_train, label = self.dataset[idx]  # [channel, x, y, t]
-        spike_train_bin = []
-        bin_width = spike_train.shape[-1] // self.length
-        for i in range(self.length):
-            s = spike_train[:, :, :, i*bin_width:(i+1)*bin_width].sum(axis=-1)
-            s = s.astype(bool)  # [channel, x, y]
-            spike_train_bin.append(s)
-        spike_train_bin = np.array(spike_train_bin)  # [t, channel, x, y]
-        spike_train_bin = spike_train_bin.transpose(1, 2, 3, 0)  # [channel, x, y, t]
-        return spike_train_bin, label
 
 
 # %% define model
@@ -365,14 +351,12 @@ if __name__ == "__main__":
             dev_dataloader = torch.load('./data/N-MNIST/dev.pt')
         else:
             # load nmnist training dataset
-            nmnist_trainset = NMNIST(root='./data/N-MNIST', train=True, thread=128)
-            nmnist_trainset, nmnist_devset = random_split(
-                nmnist_trainset, [50000, 10000], generator=torch.Generator().manual_seed(42)
+            train_data = NMNISTDataset(root='./data/N-MNIST', train=True, thread=128, length=length)
+            train_data, dev_data = random_split(
+                train_data, [50000, 10000], generator=torch.Generator().manual_seed(42)
             )
-            train_data = NMNISTDataset(nmnist_trainset, length=length)
             train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
             torch.save(train_dataloader, './data/N-MNIST/train.pt')
-            dev_data = NMNISTDataset(nmnist_devset, length=length)
             dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
             torch.save(dev_dataloader, './data/N-MNIST/dev.pt')
 
