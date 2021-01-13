@@ -100,9 +100,9 @@ class NMNISTDataset(Dataset):
     @staticmethod
     def process_sample(path, length):
         print('process:', path)
+        data = []
         with open(path, 'rb') as f:
             b = bitstring.BitStream(f)
-            data = []
             for _ in range(int(len(b) / 40)):
                 data.append(b.readlist('uint:8, uint:8, bool:1, int:23'))
         spike_train = torch.zeros((34, 34, 2, 300), dtype=torch.bool)  # [x, y, channel, t]
