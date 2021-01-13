@@ -117,7 +117,7 @@ class NMNISTDataset(Dataset):
                 s = spike_train[:, :, :, i * bin_width:(i + 1) * bin_width].sum(axis=3, dtype=torch.bool)
                 spike_train_bin.append(s)  # [x, y, channel]
             spike_train_bin = torch.stack(spike_train_bin, dim=3)  # [x, y, channel, t]
-            return spike_train_bin.transpose(2, 0, 1, 3)  # [channel, x, y, t]
+            return spike_train_bin.permute(2, 0, 1, 3)  # [channel, x, y, t]
 
     def get_dataset(self):
         pool = multiprocessing.Pool(processes=self.thread)
