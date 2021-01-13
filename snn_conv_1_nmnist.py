@@ -3,7 +3,7 @@ import pandas as pd
 import os
 import time
 import sys
-import multiprocessing
+# import multiprocessing
 
 import torch
 import numpy as np
@@ -86,7 +86,7 @@ class NMNISTDataset(Dataset):
             self.data_path = os.path.join(root, 'Train')
         else:
             self.data_path = os.path.join(root, 'Test')
-        self.thread = thread
+        # self.thread = thread
         self.length = length
         self.dataset_x, self.dataset_y = self.get_dataset()
 
@@ -352,20 +352,20 @@ if __name__ == "__main__":
 
     if args.train == True:
         if args.load is True:
-            print('load dataloaders')
-            train_dataloader = torch.load('./data/N-MNIST/train.pt')
-            dev_dataloader = torch.load('./data/N-MNIST/dev.pt')
+            print('load data')
+            train_data = torch.load('./data/N-MNIST/train_data.pt')
+            dev_data = torch.load('./data/N-MNIST/dev_data.pt')
         else:
-            # load nmnist training dataset
+            print('process data')
             train_data = NMNISTDataset(root='./data/N-MNIST', train=True, thread=thread, length=length)
-            print('train_data', len(train_data))
             train_data, dev_data = random_split(
                 train_data, [50000, 10000], generator=torch.Generator().manual_seed(42)
             )
-            train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
-            torch.save(train_dataloader, './data/N-MNIST/train.pt')
-            dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
-            torch.save(dev_dataloader, './data/N-MNIST/dev.pt')
+            torch.save(train_data, './data/N-MNIST/train_data.pt')
+            torch.save(dev_data, './data/N-MNIST/dev_data.pt')
+        print('train_data', len(train_data), 'dev_data', len(dev_data))
+        train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
+        dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
         train_it = 0
         test_it = 0
@@ -422,15 +422,14 @@ if __name__ == "__main__":
 
     elif args.test == True:
         if args.load is True:
-            print('load dataloaders')
-            test_dataloader = torch.load('./data/N-MNIST/test.pt')
+            print('load data')
+            test_data = torch.load('./data/N-MNIST/test_data.pt')
         else:
-            print('processing data')
-            # load nmnist test dataset
+            print('process data')
             test_data = NMNISTDataset(root='./data/N-MNIST', train=False, thread=thread, length=length)
-            print('test_data', len(test_data))
-            test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
-            torch.save(test_dataloader, './data/N-MNIST/test.pt')
+            torch.save(test_data, './data/N-MNIST/test_data.pt')
+        print('test_data', len(test_data))
+        test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
         test_checkpoint = torch.load(test_checkpoint_path)
         snn.load_state_dict(test_checkpoint["snn_state_dict"])
