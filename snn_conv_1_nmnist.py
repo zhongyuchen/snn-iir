@@ -137,7 +137,7 @@ class NMNISTDataset(Dataset):
         # pool.join()
         # result_x = [self.get_spike_train(res.get()) for res in result_x]
         result_x = [self.get_spike_train(res) for res in result_x]
-        return torch.stack(result_x), torch.stack(result_y)
+        return torch.stack(result_x), torch.tensor(result_y)
 
 
 # %% define model
