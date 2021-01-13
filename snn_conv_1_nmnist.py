@@ -129,7 +129,7 @@ class NMNISTDataset(Dataset):
                 if file.startswith('.') is False and file.endswith('.bin') is True:
                     file_list.append(file)
             for file in sorted(file_list):
-                res = pool.apply_async(self.process_sample, args=(os.path.join(path, file), ))
+                res = pool.apply_async(self.process_sample, args=(os.path.join(path, file), self.length))
                 result.append((res, number))
         pool.close()
         pool.join()
@@ -344,6 +344,8 @@ if __name__ == "__main__":
     test_acc_list = []
     checkpoint_list = []
 
+    thread = multiprocessing.cpu_count()
+
     if args.train == True:
         if args.load is True:
             print('load dataloaders')
@@ -351,7 +353,7 @@ if __name__ == "__main__":
             dev_dataloader = torch.load('./data/N-MNIST/dev.pt')
         else:
             # load nmnist training dataset
-            train_data = NMNISTDataset(root='./data/N-MNIST', train=True, thread=128, length=length)
+            train_data = NMNISTDataset(root='./data/N-MNIST', train=True, thread=thread, length=length)
             train_data, dev_data = random_split(
                 train_data, [50000, 10000], generator=torch.Generator().manual_seed(42)
             )
@@ -420,8 +422,7 @@ if __name__ == "__main__":
         else:
             print('processing data')
             # load nmnist test dataset
-            nmnist_testset = NMNIST(root='./data/N-MNIST', train=False, thread=128)
-            test_data = NMNISTDataset(nmnist_testset, length=length)
+            test_data = NMNISTDataset(root='./data/N-MNIST', train=False, thread=thread, length=length)
             test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
             torch.save(test_dataloader, './data/N-MNIST/test.pt')
 
