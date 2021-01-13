@@ -327,7 +327,7 @@ def test(model, test_data_loader, writer=None):
 if __name__ == "__main__":
 
     snn = mysnn().to(device)
-    snn = torch.nn.DataParallel(snn, device_ids=[1, 2])
+    snn = torch.nn.DataParallel(snn, device_ids=[1, 2, 3])
 
     writer = SummaryWriter()
 
