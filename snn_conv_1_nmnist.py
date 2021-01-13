@@ -98,22 +98,25 @@ class NMNISTDataset(Dataset):
         return self.dataset[idx]
 
     @staticmethod
-    def process_sample(path, length):
+    def process_sample(path):
         print('process:', path)
-        data = []
         with open(path, 'rb') as f:
             b = bitstring.BitStream(f)
+            data = []
             for _ in range(int(len(b) / 40)):
                 data.append(b.readlist('uint:8, uint:8, bool:1, int:23'))
-        spike_train = torch.zeros((34, 34, 2, 300), dtype=torch.bool)  # [x, y, channel, t]
-        for d in data:
-            d[3] = int(d[3] / 1000)  # change the unit of time to ms
-            if d[3] < 300:
-                d[2] *= 1  # True event -> channel 1, False event -> chennel 0
-                spike_train[tuple(d)] = True
+            spike_train = torch.zeros((34, 34, 2, 300), dtype=torch.bool)  # [x, y, channel, t]
+            for d in data:
+                d[3] = int(d[3] / 1000)  # change the unit of time to ms
+                if d[3] < 300:
+                    d[2] *= 1  # True event -> channel 1, False event -> chennel 0
+                    spike_train[tuple(d)] = True
+            return data
+
+    def process_spike_train(self, spike_train):
         spike_train_bin = []
-        bin_width = spike_train.shape[-1] // length
-        for i in range(length):
+        bin_width = spike_train.shape[-1] // self.length
+        for i in range(self.length):
             s = spike_train[:, :, :, i * bin_width:(i + 1) * bin_width].sum(axis=3, dtype=torch.bool)
             spike_train_bin.append(s)  # [x, y, channel]
         spike_train_bin = torch.stack(spike_train_bin, dim=3)  # [x, y, channel, t]
@@ -129,11 +132,11 @@ class NMNISTDataset(Dataset):
                 if file.startswith('.') is False and file.endswith('.bin') is True:
                     file_list.append(file)
             for file in sorted(file_list):
-                res = pool.apply_async(self.process_sample, args=(os.path.join(path, file), self.length))
+                res = pool.apply_async(self.process_sample, args=(os.path.join(path, file), ))
                 result.append((res, number))
         pool.close()
         pool.join()
-        return [(res.get(), number) for res, number in result]
+        return [(self.process_spike_train(res.get()), number) for res, number in result]
 
 
 # %% define model
