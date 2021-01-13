@@ -104,6 +104,7 @@ class NMNISTDataset(Dataset):
             pt = data[2::5]
             p = (pt & 128) >> 7
             t = ((pt & 127) << 16) | (data[3::5] << 8) | (data[4::5])
+            t -= t.min()  # move data through time
             t = t // 1000  # change the unit of time to ms
             return p, x, y, t  # [p, x, y, t]
 
@@ -111,7 +112,7 @@ class NMNISTDataset(Dataset):
         p, x, y, t = event
         bin_width = 300 // self.length
         t = t // bin_width
-        spike_train = torch.zeros((2, 34, 34, t.max() + 1), dtype=torch.bool)  # [p, x, y, t]
+        spike_train = torch.zeros((2, 34, 34, max(self.length, t.max() + 1)), dtype=torch.bool)  # [p, x, y, t]
         spike_train[p, x, y, t] = True
         spike_train = spike_train[:, :, :, 0:self.length]
         return spike_train  # [p, x, y, t]
