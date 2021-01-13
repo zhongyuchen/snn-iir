@@ -338,17 +338,15 @@ if __name__ == "__main__":
 
     if args.train == True:
         if args.load is True:
-            print('load data')
+            print('load train data')
             train_data = torch.load('./data/N-MNIST/train_data.pt')
-            dev_data = torch.load('./data/N-MNIST/dev_data.pt')
         else:
-            print('process data')
+            print('process train data')
             train_data = NMNISTDataset(root='./data/N-MNIST', train=True, length=length)
-            train_data, dev_data = random_split(
-                train_data, [50000, 10000], generator=torch.Generator().manual_seed(42)
-            )
             torch.save(train_data, './data/N-MNIST/train_data.pt')
-            torch.save(dev_data, './data/N-MNIST/dev_data.pt')
+        train_data, dev_data = random_split(
+            train_data, [50000, 10000], generator=torch.Generator().manual_seed(42)
+        )
         print('train_data', len(train_data), 'dev_data', len(dev_data))
         train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
         dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
