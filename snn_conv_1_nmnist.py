@@ -88,45 +88,40 @@ class NMNISTDataset(Dataset):
             self.data_path = os.path.join(root, 'Test')
         self.thread = thread
         self.length = length
-        self.dataset = self.get_dataset()
+        self.dataset_x, self.dataset_y = self.get_dataset()
 
     def __len__(self):
-        return len(self.dataset)
+        return len(self.dataset_y)
 
     def __getitem__(self, idx):
-        return self.dataset[idx]
+        return self.dataset_x[idx], self.dataset_y[idx]
 
     @staticmethod
     def get_event(path):
         print('process:', path)
         with open(path, 'rb') as f:
-            data = np.uint32(np.fromfile(f, dtype=np.uint8))
+            data = torch.tensor(np.fromfile(f, dtype=np.uint8), dtype=torch.int64)
             x = data[0::5]
             y = data[1::5]
             pt = data[2::5]
             p = (pt & 128) >> 7
             t = ((pt & 127) << 16) | (data[3::5] << 8) | (data[4::5])
-            event = np.stack([x, y, p, t], axis=1)
-            return event
+            t = t // 1000  # change the unit of time to ms
+            return p, x, y, t  # [p, x, y, t]
 
     def get_spike_train(self, event):
-        spike_train = torch.zeros((34, 34, 2, 300), dtype=torch.bool)  # [x, y, channel, t]
-        for e in event:
-            e[3] = int(e[3] / 1000)  # change the unit of time to ms
-            if e[3] < 300:
-                e[2] *= 1  # True event -> channel 1, False event -> chennel 0
-                spike_train[tuple(e)] = True
-        spike_train_bin = []
-        bin_width = spike_train.shape[-1] // self.length
-        for i in range(self.length):
-            s = spike_train[:, :, :, i * bin_width:(i + 1) * bin_width].sum(axis=3, dtype=torch.bool)
-            spike_train_bin.append(s)  # [x, y, channel]
-        spike_train_bin = torch.stack(spike_train_bin, dim=3)  # [x, y, channel, t]
-        return spike_train_bin.permute(2, 0, 1, 3)  # [channel, x, y, t]
+        p, x, y, t = event
+        bin_width = 300 // self.length
+        t = t // bin_width
+        spike_train = torch.zeros((2, 34, 34, self.length + 1), dtype=torch.bool)  # [p, x, y, t]
+        spike_trian[p, x, y, t] = True
+        spike_train = spike_train[:, :, :, 0:self.length]
+        return spike_train  # [p, x, y, t]
 
     def get_dataset(self):
         pool = multiprocessing.Pool(processes=self.thread)
-        result = []
+        result_x = []
+        result_y = []
         for number in range(10):
             file_list = []
             path = os.path.join(self.data_path, str(number))
@@ -135,10 +130,12 @@ class NMNISTDataset(Dataset):
                     file_list.append(file)
             for file in sorted(file_list):
                 res = pool.apply_async(self.get_event, args=(os.path.join(path, file), ))
-                result.append((res, number))
+                result_x.append(res)
+                result_y.append(number)
         pool.close()
         pool.join()
-        return [(self.get_spike_train(res.get()), number) for res, number in result]
+        result_x = [self.get_spike_train(res.get()) for res in result_x]
+        return torch.tensor(result_x), torch.tensor(result_y)
 
 
 # %% define model
