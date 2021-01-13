@@ -3,7 +3,6 @@ import pandas as pd
 import os
 import time
 import sys
-import multiprocessing
 
 import torch
 import numpy as np
@@ -80,21 +79,26 @@ acc_file_name = experiment_name + '_' + conf['acc_file_name']
 
 
 class GestureDataset(Dataset):
-    def __init__(self, root, train, thread, length):
+    def __init__(self, root, train, length):
         super(GestureDataset, self).__init__()
         if train is True:
             self.data_path = os.path.join(root, 'Train')
         else:
             self.data_path = os.path.join(root, 'Test')
-        # self.thread = thread
         self.length = length
-        self.dataset_x, self.dataset_y = self.get_dataset()
+        self.event, self.label = self.get_dataset()
 
     def __len__(self):
-        return len(self.dataset_y)
+        return len(self.label)
 
     def __getitem__(self, idx):
-        return self.dataset_x[idx], self.dataset_y[idx]
+        p, x, y, t = self.event[idx]
+        bin_width = 300 // self.length
+        t = t // bin_width
+        spike_train = torch.zeros((2, 34, 34, t.max() + 1), dtype=torch.bool)  # [p, x, y, t]
+        spike_train[p, x, y, t] = True
+        spike_train = spike_train[:, :, :, 0:self.length]
+        return spike_train, self.label[idx]  # [p, x, y, t]
 
     @staticmethod
     def get_event(path):
@@ -109,19 +113,9 @@ class GestureDataset(Dataset):
             t = t // 1000  # change the unit of time to ms
             return p, x, y, t  # [p, x, y, t]
 
-    def get_spike_train(self, event):
-        p, x, y, t = event
-        bin_width = 300 // self.length
-        t = t // bin_width
-        spike_train = torch.zeros((2, 34, 34, t.max() + 1), dtype=torch.bool)  # [p, x, y, t]
-        spike_train[p, x, y, t] = True
-        spike_train = spike_train[:, :, :, 0:self.length]
-        return spike_train  # [p, x, y, t]
-
     def get_dataset(self):
-        # pool = multiprocessing.Pool(processes=self.thread)
-        result_x = []
-        result_y = []
+        event = []
+        label = []
         for number in range(10):
             file_list = []
             path = os.path.join(self.data_path, str(number))
@@ -129,15 +123,9 @@ class GestureDataset(Dataset):
                 if file.startswith('.') is False and file.endswith('.bin') is True:
                     file_list.append(file)
             for file in sorted(file_list):
-                # res = pool.apply_async(self.get_event, args=(os.path.join(path, file), ))
-                # result_x.append(res)
-                result_x.append(self.get_event(os.path.join(path, file)))
-                result_y.append(number)
-        # pool.close()
-        # pool.join()
-        # result_x = [self.get_spike_train(res.get()) for res in result_x]
-        result_x = [self.get_spike_train(res) for res in result_x]
-        return torch.stack(result_x), torch.tensor(result_y)
+                event.append(self.get_event(os.path.join(path, file)))
+                label.append(number)
+        return event, torch.tensor(label)
 
 
 # %% define model
@@ -348,8 +336,6 @@ if __name__ == "__main__":
     test_acc_list = []
     checkpoint_list = []
 
-    thread = multiprocessing.cpu_count()
-
     if args.train == True:
         if args.load is True:
             print('load data')
@@ -357,7 +343,7 @@ if __name__ == "__main__":
             dev_data = torch.load('./data/DVS-Gesture-dataset/dev_data.pt')
         else:
             print('process data')
-            train_data = GestureDataset(root='./data/DVS-Gesture-dataset', train=True, thread=thread, length=length)
+            train_data = GestureDataset(root='./data/DVS-Gesture-dataset', train=True, length=length)
             train_data, dev_data = random_split(
                 train_data, [50000, 10000], generator=torch.Generator().manual_seed(42)
             )
@@ -426,7 +412,7 @@ if __name__ == "__main__":
             test_data = torch.load('./data/DVS-Gesture-dataset/test_data.pt')
         else:
             print('process data')
-            test_data = GestureDataset(root='./data/DVS-Gesture-dataset', train=False, thread=thread, length=length)
+            test_data = GestureDataset(root='./data/DVS-Gesture-dataset', train=False, length=length)
             torch.save(test_data, './data/DVS-Gesture-dataset/test_data.pt')
         print('test_data', len(test_data))
         test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
