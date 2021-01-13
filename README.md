@@ -24,6 +24,7 @@ python snn_mlp_2_poisson_input.py --train
 |snn_conv_1_mnist|CNN|zero|dual exp iir|MNIST|copy along time dimension|
 |snn_conv_1_mnist_poisson_input|CNN|zero|dual exp iir|MNIST|rate-based poisson|
 |snn_conv_1_nmnist|CNN|zero|dual exp iir|N-MNIST|accumulate within time window(OR)|
+|snn_conv_1_gesture|CNN|zero|dual exp iir|DVS128 Gesture Dataset|accumulate within time window(OR)|
 
 ### Times Series Classification
 
