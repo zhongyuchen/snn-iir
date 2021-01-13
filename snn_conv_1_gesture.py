@@ -251,7 +251,7 @@ def train(model, optimizer, scheduler, train_data_loader, writer=None):
 
     for i_batch, sample_batched in enumerate(train_data_loader):
 
-        x_train = sample_batched[0]
+        x_train = sample_batched[0].to(device)
         target = sample_batched[1].to(device)
         out_spike = model(x_train)
 
@@ -296,7 +296,7 @@ def test(model, test_data_loader, writer=None):
     criterion = torch.nn.CrossEntropyLoss()
 
     for i_batch, sample_batched in enumerate(test_data_loader):
-        x_test = sample_batched[0]
+        x_test = sample_batched[0].to(device)
         target = sample_batched[1].to(device)
         out_spike = model(x_test)
 
