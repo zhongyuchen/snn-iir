@@ -86,19 +86,13 @@ class GestureDataset(Dataset):
         else:
             self.data_path = os.path.join(root, 'Test')
         self.length = length
-        self.event, self.label = self.get_dataset()
+        self.data, self.label = self.get_dataset()
 
     def __len__(self):
         return len(self.label)
 
     def __getitem__(self, idx):
-        p, x, y, t = self.event[idx]
-        bin_width = 300 // self.length
-        t = t // bin_width
-        spike_train = torch.zeros((2, 34, 34, t.max() + 1), dtype=torch.bool)  # [p, x, y, t]
-        spike_train[p, x, y, t] = True
-        spike_train = spike_train[:, :, :, 0:self.length]
-        return spike_train, self.label[idx]  # [p, x, y, t]
+        return self.data[idx], self.label[idx]
 
     @staticmethod
     def get_event(path):
@@ -113,8 +107,17 @@ class GestureDataset(Dataset):
             t = t // 1000  # change the unit of time to ms
             return p, x, y, t  # [p, x, y, t]
 
+    def get_spike_train(self, event):
+        p, x, y, t = event
+        bin_width = 300 // self.length
+        t = t // bin_width
+        spike_train = torch.zeros((2, 34, 34, t.max() + 1), dtype=torch.bool)  # [p, x, y, t]
+        spike_train[p, x, y, t] = True
+        spike_train = spike_train[:, :, :, 0:self.length]
+        return spike_train  # [p, x, y, t]
+
     def get_dataset(self):
-        event = []
+        data = []
         label = []
         for number in range(10):
             file_list = []
@@ -123,9 +126,9 @@ class GestureDataset(Dataset):
                 if file.startswith('.') is False and file.endswith('.bin') is True:
                     file_list.append(file)
             for file in sorted(file_list):
-                event.append(self.get_event(os.path.join(path, file)))
+                data.append(self.get_spike_train(event=self.get_event(path=os.path.join(path, file))))
                 label.append(number)
-        return event, torch.tensor(label)
+        return torch.stack(data), torch.tensor(label)
 
 
 # %% define model
