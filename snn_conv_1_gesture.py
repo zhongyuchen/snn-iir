@@ -131,8 +131,8 @@ class GestureDataset(Dataset):
                     while data[counter:counter + e_size]:
                         aer_data = struct.unpack('I', data[counter:counter + 4])[0]
                         timestamp = struct.unpack('I', data[counter + 4:counter + 8])[0] | e_tsoverflow << 31
-                        x = (aer_data >> 17) & 0x00007FFF
-                        y = (aer_data >> 2) & 0x00007FFF
+                        x = (aer_data >> 17) & 0x00001FFF
+                        y = (aer_data >> 2) & 0x00001FFF
                         pol = (aer_data >> 1) & 0x00000001
                         counter = counter + e_size
                         x_list.append(x)
