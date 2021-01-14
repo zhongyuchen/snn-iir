@@ -150,7 +150,7 @@ class GestureDataset(Dataset):
 
     def get_label(self, file):
         data = []
-        with open(os.path.join(path, file), 'r') as f:
+        with open(os.path.join(self.root, file), 'r') as f:
             lines = csv.reader(f)
             for i, line in enumerate(lines):
                 if i == 0:
