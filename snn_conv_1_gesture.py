@@ -142,10 +142,10 @@ class GestureDataset(Dataset):
                 else:
                     # non-polarity event packet, not implemented
                     pass
-            x_list = torch.tensor(x_list, dtype=int64)
-            y_list = torch.tensor(y_list, dtype=int64)
-            t_list = torch.tensor(t_list, dtype=int64) // 1000
-            p_list = torch.tensor(p_list, dtype=int64)
+            x_list = torch.tensor(x_list, dtype=torch.int64)
+            y_list = torch.tensor(y_list, dtype=torch.int64)
+            t_list = torch.tensor(t_list, dtype=torch.int64) // 1000
+            p_list = torch.tensor(p_list, dtype=torch.int64)
             return p_list, x_list, y_list, t_list
 
     def get_label(self, file):
