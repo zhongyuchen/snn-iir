@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import time
 import sys
+import csv
 
 import torch
 import numpy as np
@@ -81,10 +82,11 @@ acc_file_name = experiment_name + '_' + conf['acc_file_name']
 class GestureDataset(Dataset):
     def __init__(self, root, train, length):
         super(GestureDataset, self).__init__()
+        self.root = root
         if train is True:
-            self.data_path = os.path.join(root, 'Train')
+            self.trial_path = 'trials_to_train.txt'
         else:
-            self.data_path = os.path.join(root, 'Test')
+            self.trial_path = 'trials_to_test.txt'
         self.length = length
         self.data, self.label = self.get_dataset()
 
@@ -94,42 +96,105 @@ class GestureDataset(Dataset):
     def __getitem__(self, idx):
         return self.data[idx], self.label[idx]
 
-    @staticmethod
-    def get_event(path):
-        print('process:', path)
-        with open(path, 'rb') as f:
-            data = torch.tensor(np.fromfile(f, dtype=np.uint8), dtype=torch.int64)
-            x = data[0::5]
-            y = data[1::5]
-            pt = data[2::5]
-            p = (pt & 128) >> 7
-            t = ((pt & 127) << 16) | (data[3::5] << 8) | (data[4::5])
-            t -= t.min()  # move data through time
-            t = t // 1000  # change the unit of time to ms
-            return p, x, y, t  # [p, x, y, t]
+    def get_event(self, file):
+        print('process:', file)
+        with open(file_name, 'rb') as bin_f:
+            # skip ascii header
+            line = bin_f.readline()
+            while line.startswith(b'#'):
+                if line == b'#!END-HEADER\r\n':
+                    break
+                else:
+                    line = bin_f.readline()
 
-    def get_spike_train(self, event):
+            x_list, y_list, t_list, p_list = [], [], [], []
+            while True:
+                header = bin_f.read(28)
+                if not header or len(header) == 0:
+                    break
+
+                # read header
+                e_type = struct.unpack('H', header[0:2])[0]
+                e_source = struct.unpack('H', header[2:4])[0]
+                e_size = struct.unpack('I', header[4:8])[0]
+                e_offset = struct.unpack('I', header[8:12])[0]
+                e_tsoverflow = struct.unpack('I', header[12:16])[0]
+                e_capacity = struct.unpack('I', header[16:20])[0]
+                e_number = struct.unpack('I', header[20:24])[0]
+                e_valid = struct.unpack('I', header[24:28])[0]
+
+                data_length = e_capacity * e_size
+                data = bin_f.read(data_length)
+                counter = 0
+
+                if e_type == 1:
+                    while data[counter:counter + e_size]:
+                        aer_data = struct.unpack('I', data[counter:counter + 4])[0]
+                        timestamp = struct.unpack('I', data[counter + 4:counter + 8])[0] | e_tsoverflow << 31
+                        x = (aer_data >> 17) & 0x00007FFF
+                        y = (aer_data >> 2) & 0x00007FFF
+                        pol = (aer_data >> 1) & 0x00000001
+                        counter = counter + e_size
+                        x_list.append(x)
+                        y_list.append(y)
+                        t_list.append(timestamp)
+                        p_list.append(pol)
+                else:
+                    # non-polarity event packet, not implemented
+                    pass
+            x_list = torch.tensor(x_list, dtype=int64)
+            y_list = torch.tensor(y_list, dtype=int64)
+            t_list = torch.tensor(t_list, dtype=int64) // 1000
+            p_list = torch.tensor(p_list, dtype=int64)
+            return p_list, x_list, y_list, t_list
+
+    def get_label(self, file):
+        data = []
+        with open(os.path.join(path, file), 'r') as f:
+            lines = csv.reader(f)
+            for i, line in enumerate(lines):
+                if i == 0:
+                    pass
+                data.append([int(d) for d in line])
+        return data
+
+    def get_single_sample(self, event):
         p, x, y, t = event
-        bin_width = 300 // self.length
+        t -= t.min()
+        bin_width = (t.max() + 1) // self.length
         t = t // bin_width
         spike_train = torch.zeros((2, 34, 34, max(self.length, t.max() + 1)), dtype=torch.bool)  # [p, x, y, t]
         spike_train[p, x, y, t] = True
         spike_train = spike_train[:, :, :, 0:self.length]
-        return spike_train  # [p, x, y, t]
+        return spike_train
+
+    def get_sample(self, file):
+        p, x, y, t = self.get_event(file=file)
+        period = self.get_label(file=file.split('.')[0] + '.csv')
+        data, label = [], []
+        for y in period:
+            index = (p > y[1]) * (p < y[2])
+            data.append(self.get_single_sample(event=(p[index], x[index], y[index], t[index])))
+            label.append(y[0] - 1)
+        return torch.stack(spike_train), torch.tensor(label)  # [batch, p, x, y, t]
+
+    def get_trial(self):
+        with open(os.path.join(self.root, self.trial_path), 'r') as f:
+            file_list = []
+            for line in f:
+                line = line.strip()
+                if len(line) > 0:
+                    file_list.append(line)
+            return file_list
 
     def get_dataset(self):
         data = []
         label = []
-        for number in range(10):
-            file_list = []
-            path = os.path.join(self.data_path, str(number))
-            for file in os.listdir(path):
-                if file.startswith('.') is False and file.endswith('.bin') is True:
-                    file_list.append(file)
-            for file in sorted(file_list):
-                data.append(self.get_spike_train(event=self.get_event(path=os.path.join(path, file))))
-                label.append(number)
-        return torch.stack(data), torch.tensor(label)
+        for file in self.get_trial():
+            x, y = self.get_sample(file=file)
+            data.append(x)
+            label.append(y)
+        return torch.cat(data), torch.cat(label)
 
 
 # %% define model
@@ -144,54 +209,35 @@ class mysnn(torch.nn.Module):
         self.train_bias = train_bias
         self.membrane_filter = membrane_filter
 
-        # 1
-        self.axon1 = dual_exp_iir_layer((2, 34, 34), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        # 1: 2x128x128 -> 64x42x42
+        self.axon1 = dual_exp_iir_layer((2, 128, 128), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv1 = conv2d_layer(
-            h_input=34, w_input=34, in_channels=2, out_channels=32, kernel_size=3,
-            stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
+            h_input=128, w_input=128, in_channels=2, out_channels=64, kernel_size=7,
+            stride=3, padding=1, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
-        # 2
-        self.axon2 = dual_exp_iir_layer((32, 34, 34), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        # 2: 64x42x42 -> 32x14x14
+        self.axon2 = dual_exp_iir_layer((64, 42, 42), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv2 = conv2d_layer(
-            h_input=34, w_input=34, in_channels=32, out_channels=32, kernel_size=3,
-            stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
+            h_input=42, w_input=42, in_channels=64, out_channels=32, kernel_size=3,
+            stride=3, padding=0, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
-        # 3
-        self.axon3 = dual_exp_iir_layer((32, 34, 34), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        # 3: 32x14x14-> 32x14x14
+        self.axon3 = dual_exp_iir_layer((32, 14, 14), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
         self.conv3 = conv2d_layer(
-            h_input=34, w_input=34, in_channels=32, out_channels=64, kernel_size=3,
+            h_input=14, w_input=14, in_channels=32, out_channels=32, kernel_size=3,
             stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
             tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
         )
         # 4
-        self.axon4 = dual_exp_iir_layer((64, 34, 34), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.pool4 = maxpooling2d_layer(
-            h_input=34, w_input=34, in_channels=64, kernel_size=2,
-            stride=2, padding=1, dilation=1, step_num=length, batch_size=batch_size
-        )
-        # 5
-        self.axon5 = dual_exp_iir_layer((64, 18, 18), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.conv5 = conv2d_layer(
-            h_input=18, w_input=18, in_channels=64, out_channels=64, kernel_size=3,
-            stride=1, padding=1, dilation=1, step_num=length, batch_size=batch_size,
-            tau_m=tau_m, train_bias=train_bias, membrane_filter=membrane_filter, input_type='axon'
-        )
-        # 6
-        self.axon6 = dual_exp_iir_layer((64, 18, 18), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.pool6 = maxpooling2d_layer(
-            h_input=18, w_input=18, in_channels=64, kernel_size=2,
-            stride=2, padding=0, dilation=1, step_num=length, batch_size=batch_size
-        )
-        # 7
-        self.axon7 = dual_exp_iir_layer((9 * 9 * 64,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.snn7 = neuron_layer(9 * 9 * 64, 256, self.length, self.batch_size, tau_m, self.train_bias,
+        self.axon4 = dual_exp_iir_layer((32 * 14 * 14,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.snn4 = neuron_layer(32 * 14 * 14, 256, self.length, self.batch_size, tau_m, self.train_bias,
                                  self.membrane_filter)
-        self.dropout7 = torch.nn.Dropout(p=0.3, inplace=False)
-        # 8
-        self.axon8 = dual_exp_iir_layer((256,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.snn8 = neuron_layer(256, 10, self.length, self.batch_size, tau_m, self.train_bias, self.membrane_filter)
+        self.dropout4 = torch.nn.Dropout(p=0.3, inplace=False)
+        # 5
+        self.axon5 = dual_exp_iir_layer((256,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
+        self.snn5 = neuron_layer(256, 10, self.length, self.batch_size, tau_m, self.train_bias, self.membrane_filter)
 
     def forward(self, inputs):
         """
@@ -199,48 +245,25 @@ class mysnn(torch.nn.Module):
         :return:
         """
         # 1
-        axon1_states = self.axon1.create_init_states()
-        conv1_states = self.conv1.create_init_states()
-        axon1_out, axon1_states = self.axon1(inputs, axon1_states)
-        spike_l1, conv1_states = self.conv1(axon1_out, conv1_states)
+        axon1_out, _ = self.axon1(inputs, self.axon1.create_init_states())
+        spike_l1, _ = self.conv1(axon1_out,self.conv1.create_init_states())
         # 2
-        axon2_states = self.axon2.create_init_states()
-        conv2_states = self.conv2.create_init_states()
-        axon2_out, axon2_states = self.axon2(spike_l1, axon2_states)
-        spike_l2, conv2_states = self.conv2(axon2_out, conv2_states)
+        axon2_out, _ = self.axon2(spike_l1, self.axon2.create_init_states())
+        spike_l2, _ = self.conv2(axon2_out, self.conv2.create_init_states())
         # 3
-        axon3_states = self.axon3.create_init_states()
-        conv3_states = self.conv3.create_init_states()
-        axon3_out, axon3_states = self.axon3(spike_l2, axon3_states)
-        spike_l3, conv3_states = self.conv3(axon3_out, conv3_states)
+        axon3_out, _ = self.axon3(spike_l2, self.axon3.create_init_states())
+        spike_l3, _ = self.conv3(axon3_out, self.conv3.create_init_states())
+        # 3 -> 4
+        spike_l3 = spike_l3.view(spike_l3.shape[0], -1, spike_l3.shape[-1])
         # 4
-        axon4_states = self.axon4.create_init_states()
-        axon4_out, axon4_states = self.axon4(spike_l3, axon4_states)
-        spike_l4 = self.pool4(axon4_out)
+        axon4_out, _ = self.axon4(spike_l3, self.axon4.create_init_states())
+        spike_l4, _ = self.snn4(axon4_out, self.snn4.create_init_states())
+        drop_4 = self.dropout4(spike_l4)
         # 5
-        axon5_states = self.axon5.create_init_states()
-        conv5_states = self.conv5.create_init_states()
-        axon5_out, axon5_states = self.axon5(spike_l4, axon5_states)
-        spike_l5, conv5_states = self.conv5(axon5_out, conv5_states)
-        # 6
-        axon6_states = self.axon6.create_init_states()
-        axon6_out, axon6_states = self.axon6(spike_l5, axon6_states)
-        spike_l6 = self.pool6(axon6_out)
-        # 6 -> 7
-        spike_l6 = spike_l6.view(spike_l6.shape[0], -1, spike_l6.shape[-1])
-        # 7
-        axon7_states = self.axon7.create_init_states()
-        snn7_states = self.snn7.create_init_states()
-        axon7_out, axon7_states = self.axon7(spike_l6, axon7_states)
-        spike_l7, snn7_states = self.snn7(axon7_out, snn7_states)
-        drop_7 = self.dropout7(spike_l7)
-        # 8
-        axon8_states = self.axon8.create_init_states()
-        snn8_states = self.snn8.create_init_states()
-        axon8_out, axon8_states = self.axon8(drop_7, axon8_states)
-        spike_l8, snn8_states = self.snn8(axon8_out, snn8_states)
+        axon5_out, _ = self.axon5(drop_4, self.axon5.create_init_states())
+        spike_l5, _ = self.snn5(axon5_out, self.snn5.create_init_states())
 
-        return spike_l8
+        return spike_l5
 
 
 ########################### train function ###################################
