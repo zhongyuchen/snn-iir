@@ -142,10 +142,10 @@ class GestureDataset(Dataset):
                 else:
                     # non-polarity event packet, not implemented
                     pass
+            p_list = torch.tensor(p_list, dtype=torch.int64)
             x_list = torch.tensor(x_list, dtype=torch.int64)
             y_list = torch.tensor(y_list, dtype=torch.int64)
             t_list = torch.tensor(t_list, dtype=torch.int64)
-            p_list = torch.tensor(p_list, dtype=torch.int64)
             return p_list, x_list, y_list, t_list
 
     def get_label(self, file):
@@ -160,8 +160,7 @@ class GestureDataset(Dataset):
 
     def get_single_sample(self, event):
         p, x, y, t = event
-        t = t // 1000 - t.min()
-        t -= t.min()
+        t = (t - t.min()) // 1000
         bin_width = (t.max() + 1) // self.length
         t = t // bin_width
         spike_train = torch.zeros((2, 34, 34, max(self.length, t.max() + 1)), dtype=torch.bool)  # [p, x, y, t]
@@ -179,7 +178,7 @@ class GestureDataset(Dataset):
             index = index.long()
             data.append(self.get_single_sample(event=(p[index], x[index], y[index], t[index])))
             label.append(peri[0] - 1)
-        return torch.stack(spike_train), torch.tensor(label)  # [batch, p, x, y, t]
+        return torch.stack(data), torch.tensor(label)  # [batch, p, x, y, t]
 
     def get_trial(self):
         with open(os.path.join(self.root, self.trial_path), 'r') as f:
