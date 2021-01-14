@@ -97,7 +97,7 @@ class GestureDataset(Dataset):
         return self.data[idx], self.label[idx]
 
     def get_event(self, file):
-        with open(file, 'rb') as bin_f:
+        with open(os.path.join(self.root, file), 'rb') as bin_f:
             # skip ascii header
             line = bin_f.readline()
             while line.startswith(b'#'):
