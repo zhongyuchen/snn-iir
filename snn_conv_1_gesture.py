@@ -4,6 +4,7 @@ import os
 import time
 import sys
 import csv
+import struct
 
 import torch
 import numpy as np
