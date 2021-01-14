@@ -10,7 +10,7 @@ hyperparameters:
   length:
     30
   batch_size:
-    128
+    64
   synapse_type:
     'dual_exp'
   epoch:
