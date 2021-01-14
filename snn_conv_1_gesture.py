@@ -144,7 +144,7 @@ class GestureDataset(Dataset):
                     pass
             x_list = torch.tensor(x_list, dtype=torch.int64)
             y_list = torch.tensor(y_list, dtype=torch.int64)
-            t_list = torch.tensor(t_list, dtype=torch.int64) // 1000
+            t_list = torch.tensor(t_list, dtype=torch.int64)
             p_list = torch.tensor(p_list, dtype=torch.int64)
             return p_list, x_list, y_list, t_list
 
@@ -160,6 +160,7 @@ class GestureDataset(Dataset):
 
     def get_single_sample(self, event):
         p, x, y, t = event
+        t = t // 1000 - t.min()
         t -= t.min()
         bin_width = (t.max() + 1) // self.length
         t = t // bin_width
