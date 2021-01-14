@@ -175,6 +175,7 @@ class GestureDataset(Dataset):
         data, label = [], []
         for y in period:
             index = (p > y[1]) * (p < y[2])
+            index = index.long()
             data.append(self.get_single_sample(event=(p[index], x[index], y[index], t[index])))
             label.append(y[0] - 1)
         return torch.stack(spike_train), torch.tensor(label)  # [batch, p, x, y, t]
