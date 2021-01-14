@@ -154,7 +154,7 @@ class GestureDataset(Dataset):
             lines = csv.reader(f)
             for i, line in enumerate(lines):
                 if i == 0:
-                    pass
+                    continue
                 data.append([int(d) for d in line])
         return data
 
