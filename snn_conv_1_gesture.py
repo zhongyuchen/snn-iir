@@ -243,7 +243,7 @@ class mysnn(torch.nn.Module):
         self.dropout4 = torch.nn.Dropout(p=0.3, inplace=False)
         # 5
         self.axon5 = dual_exp_iir_layer((256,), self.length, self.batch_size, tau_m, tau_s, train_coefficients)
-        self.snn5 = neuron_layer(256, 10, self.length, self.batch_size, tau_m, self.train_bias, self.membrane_filter)
+        self.snn5 = neuron_layer(256, 11, self.length, self.batch_size, tau_m, self.train_bias, self.membrane_filter)
 
     def forward(self, inputs):
         """
