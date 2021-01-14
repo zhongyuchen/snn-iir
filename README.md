@@ -48,6 +48,7 @@ python snn_mlp_2_poisson_input.py --train
 |snn_conv_1_mnist|99.84(99)|99.47(99)|99.59(99)|-|
 |snn_conv_1_mnist_poisson_input|99.822(93)|99.479(93)|99.519(93)|99.46|
 |snn_conv_1_nmnist|-|-|-|-|
+|snn_conv_1_gesture|-|-|-|-|
 
 ### Times Series Classification
 
