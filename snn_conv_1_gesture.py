@@ -171,7 +171,7 @@ class GestureDataset(Dataset):
     def get_sample(self, file):
         print('process:', file)
         p, x, y, t = self.get_event(file=file)
-        period = self.get_label(file=file.split('.')[0] + '.csv')
+        period = self.get_label(file=file.split('.')[0] + '_labels.csv')
         data, label = [], []
         for y in period:
             index = (p > y[1]) * (p < y[2])
