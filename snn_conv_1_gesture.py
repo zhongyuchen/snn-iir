@@ -377,6 +377,7 @@ if __name__ == "__main__":
             print('process data')
             train_data = GestureDataset(root='./data/DvsGesture', train=True, length=length)
             torch.save(train_data, './data/DvsGesture/train_data.pt')
+        print('train data', len(train_data))
         train_data, dev_data = random_split(
             train_data, [50000, 10000], generator=torch.Generator().manual_seed(42)
         )
