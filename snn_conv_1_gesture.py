@@ -97,7 +97,6 @@ class GestureDataset(Dataset):
         return self.data[idx], self.label[idx]
 
     def get_event(self, file):
-        print('process:', file)
         with open(file, 'rb') as bin_f:
             # skip ascii header
             line = bin_f.readline()
@@ -169,6 +168,7 @@ class GestureDataset(Dataset):
         return spike_train
 
     def get_sample(self, file):
+        print('process:', file)
         p, x, y, t = self.get_event(file=file)
         period = self.get_label(file=file.split('.')[0] + '.csv')
         data, label = [], []
