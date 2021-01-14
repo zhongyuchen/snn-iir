@@ -160,12 +160,16 @@ class GestureDataset(Dataset):
 
     def get_single_sample(self, event):
         p, x, y, t = event
-        t = (t - t.min()) // 1000
-        bin_width = max((t.max() + 1), 300) // self.length
-        t = t // bin_width
-        spike_train = torch.zeros((2, 128, 128, max(self.length, t.max() + 1)), dtype=torch.bool)  # [p, x, y, t]
-        spike_train[p, x, y, t] = True
-        spike_train = spike_train[:, :, :, 0:self.length]
+        t = t - t.min()
+        if t.max() + 1 > self.length:
+            bin_width = (t.max() + 1) // self.length
+            t = t // bin_width
+            spike_train = torch.zeros((2, 128, 128, t.max() + 1), dtype=torch.bool)  # [p, x, y, t]
+            spike_train[p, x, y, t] = True
+            spike_train = spike_train[:, :, :, 0:self.length]
+        else:
+            spike_train = torch.zeros((2, 128, 128, self.length), dtype=torch.bool)
+            spike_train[p, x, y, t] = True
         return spike_train
 
     def get_sample(self, file):
