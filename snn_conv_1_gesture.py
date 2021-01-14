@@ -173,11 +173,11 @@ class GestureDataset(Dataset):
         p, x, y, t = self.get_event(file=file)
         period = self.get_label(file=file.split('.')[0] + '_labels.csv')
         data, label = [], []
-        for y in period:
-            index = (p >= y[1]) * (p <= y[2])
+        for peri in period:
+            index = (p >= peri[1]) * (p <= peri[2])
             index = index.long()
             data.append(self.get_single_sample(event=(p[index], x[index], y[index], t[index])))
-            label.append(y[0] - 1)
+            label.append(peri[0] - 1)
         return torch.stack(spike_train), torch.tensor(label)  # [batch, p, x, y, t]
 
     def get_trial(self):
