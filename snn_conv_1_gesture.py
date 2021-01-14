@@ -174,7 +174,7 @@ class GestureDataset(Dataset):
         period = self.get_label(file=file.split('.')[0] + '_labels.csv')
         data, label = [], []
         for y in period:
-            index = (p > y[1]) * (p < y[2])
+            index = (p >= y[1]) * (p <= y[2])
             index = index.long()
             data.append(self.get_single_sample(event=(p[index], x[index], y[index], t[index])))
             label.append(y[0] - 1)
