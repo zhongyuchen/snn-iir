@@ -123,25 +123,21 @@ class GestureDataset(Dataset):
                 e_number = struct.unpack('I', header[20:24])[0]
                 e_valid = struct.unpack('I', header[24:28])[0]
 
-                data_length = e_capacity * e_size
+                data_length = e_number * e_size
                 data = bin_f.read(data_length)
                 counter = 0
 
-                if e_type == 1:
-                    while data[counter:counter + e_size]:
-                        aer_data = struct.unpack('I', data[counter:counter + 4])[0]
-                        timestamp = struct.unpack('I', data[counter + 4:counter + 8])[0] | e_tsoverflow << 31
-                        x = (aer_data >> 17) & 0x00001FFF
-                        y = (aer_data >> 2) & 0x00001FFF
-                        pol = (aer_data >> 1) & 0x00000001
-                        counter = counter + e_size
-                        x_list.append(x)
-                        y_list.append(y)
-                        t_list.append(timestamp)
-                        p_list.append(pol)
-                else:
-                    # non-polarity event packet, not implemented
-                    pass
+                for _ in range(e_number):
+                    aer_data = struct.unpack('I', data[counter:counter + 4])[0]
+                    timestamp = struct.unpack('I', data[counter + 4:counter + 8])[0] | e_tsoverflow << 31
+                    x = (aer_data >> 17) & 0x00001FFF
+                    y = (aer_data >> 2) & 0x00001FFF
+                    pol = (aer_data >> 1) & 0x00000001
+                    counter = counter + e_size
+                    x_list.append(x)
+                    y_list.append(y)
+                    t_list.append(timestamp)
+                    p_list.append(pol)
             p_list = torch.tensor(p_list, dtype=torch.int64)
             x_list = torch.tensor(x_list, dtype=torch.int64)
             y_list = torch.tensor(y_list, dtype=torch.int64)
