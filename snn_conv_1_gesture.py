@@ -145,18 +145,33 @@ class GestureDataset(Dataset):
             return p_list, x_list, y_list, t_list
 
     def get_label(self, file):
-        data = []
+        data = {}
         with open(os.path.join(self.root, file), 'r') as f:
             lines = csv.reader(f)
             for i, line in enumerate(lines):
                 if i == 0:
                     continue
-                data.append([int(d) for d in line])
+                period = [int(d) for d in line]
+                if period[0] not in data:
+                    data[period[0]] = []
+                data[period[0]].append(period)
         return data
 
     def get_single_sample(self, event):
-        p, x, y, t = event
-        t = t - t.min()
+        p_list, x_list, y_list, t_list = [], [], [], []
+        t_max = 0
+        for p, x, y, t in event:
+            p_list.append(p)
+            x_list.append(x)
+            y_list.append(y)
+            t += t_max - t.min()
+            t_list.append(t)
+            t_max = t.max() + 1
+        p = torch.cat(p_list)
+        x = torch.cat(x_list)
+        y = torch.cat(y_list)
+        t = torch.cat(t_list)
+        print('time length', t.max() - t.min() + 1)
         if t.max() + 1 > self.length:
             bin_width = (t.max() + 1) // self.length
             t = t // bin_width
@@ -173,11 +188,14 @@ class GestureDataset(Dataset):
         p, x, y, t = self.get_event(file=file)
         period = self.get_label(file=file.split('.')[0] + '_labels.csv')
         data, label = [], []
-        for peri in period:
-            index = (t >= peri[1]) * (t <= peri[2])
-            index = index.long()
-            data.append(self.get_single_sample(event=(p[index], x[index], y[index], t[index])))
-            label.append(peri[0] - 1)
+        for key in period:
+            event_list = []
+            for peri in period[key]:
+                index = (t >= peri[1]) * (t <= peri[2])
+                index = index.long()
+                event_list.append((p[index], x[index], y[index], t[index]))
+            data.append(self.get_single_sample(event=event_list))
+            label.append(key - 1)
         return torch.stack(data), torch.tensor(label)  # [batch, p, x, y, t]
 
     def get_trial(self):
