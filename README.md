@@ -45,10 +45,10 @@ python snn_mlp_2_poisson_input.py --train
 |snn_mlp_1_poisson_input|99.208(98)|98.628(98)|98.928(98)|-|
 |snn_mlp_2|99.3(72)|98.66(72)|98.96(72)|-|
 |snn_mlp_2_poisson_input|99.284(96)|98.748(96)|98.978(96)|-|
-|snn_conv_1_mnist|99.84(99)|99.47(99)|99.59(99)|-|
-|snn_conv_1_mnist_poisson_input|99.822(93)|99.479(93)|99.519(93)|99.46|
-|snn_conv_1_nmnist|-|-|-|-|
-|snn_conv_1_gesture|-|-|-|-|
+|snn_conv_1_mnist|99.84(99)|99.47(99)|__99.59__(99)|-|
+|snn_conv_1_mnist_poisson_input|99.822(93)|99.479(93)|__99.519__(93)|99.46|
+|snn_conv_1_nmnist|99.998(51)|98.708(89)|98.558(89)|__99.39__|
+|snn_conv_1_gesture|-|-|-|96.09|
 
 ### Times Series Classification
 
