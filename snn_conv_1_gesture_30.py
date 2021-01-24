@@ -286,11 +286,11 @@ if __name__ == "__main__":
     if args.train == True:
         if args.load is True:
             print('load data')
-            train_data = torch.load('./data/DvsGesture/train_data.pt')
+            train_data = torch.load('./data/DvsGesture/train_data_30.pt')
         else:
             print('process data')
             train_data = GestureDataset(root='./data/DvsGesture', train=True, length=length)
-            torch.save(train_data, './data/DvsGesture/train_data.pt')
+            torch.save(train_data, './data/DvsGesture/train_data_30.pt')
         print('train data', len(train_data))
         train_data, dev_data = random_split(
             train_data, [928, 128], generator=torch.Generator().manual_seed(42)
@@ -355,11 +355,11 @@ if __name__ == "__main__":
     elif args.test == True:
         if args.load is True:
             print('load data')
-            test_data = torch.load('./data/DvsGesture/test_data.pt')
+            test_data = torch.load('./data/DvsGesture/test_data_30.pt')
         else:
             print('process data')
             test_data = GestureDataset(root='./data/DvsGesture', train=False, length=length)
-            torch.save(test_data, './data/DvsGesture/test_data.pt')
+            torch.save(test_data, './data/DvsGesture/test_data_30.pt')
         print('test_data', len(test_data))
         test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=False)
 
