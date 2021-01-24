@@ -33,7 +33,7 @@ else:
 
 # arg parser
 parser = argparse.ArgumentParser(description='conv snn')
-parser.add_argument('--config_file', type=str, default='snn_conv_1_gesture_sum.yaml',
+parser.add_argument('--config_file', type=str, default='snn_conv_1_gesture_avg.yaml',
                     help='path to configuration file')
 parser.add_argument('--train', action='store_true',
                     help='train model')
@@ -289,11 +289,11 @@ if __name__ == "__main__":
     if args.train == True:
         if args.load is True:
             print('load data')
-            train_data = torch.load('./data/DvsGesture/train_data_sum.pt')
+            train_data = torch.load('./data/DvsGesture/train_data_avg.pt')
         else:
             print('process data')
             train_data = GestureDataset(root='./data/DvsGesture', train=True, length=length)
-            torch.save(train_data, './data/DvsGesture/train_data_sum.pt')
+            torch.save(train_data, './data/DvsGesture/train_data_avg.pt')
         print('train data', len(train_data))
         train_data, dev_data = random_split(
             train_data, [928, 128], generator=torch.Generator().manual_seed(42)
@@ -358,11 +358,11 @@ if __name__ == "__main__":
     elif args.test == True:
         if args.load is True:
             print('load data')
-            test_data = torch.load('./data/DvsGesture/test_data_sum.pt')
+            test_data = torch.load('./data/DvsGesture/test_data_avg.pt')
         else:
             print('process data')
             test_data = GestureDataset(root='./data/DvsGesture', train=False, length=length)
-            torch.save(test_data, './data/DvsGesture/test_data_sum.pt')
+            torch.save(test_data, './data/DvsGesture/test_data_avg.pt')
         print('test_data', len(test_data))
         test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=False)
 

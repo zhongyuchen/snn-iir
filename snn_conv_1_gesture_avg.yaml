@@ -1,6 +1,6 @@
 
 experiment_name:
-  snn_conv_1_gesture_sum
+  snn_conv_1_gesture_avg
 
 pytorch_seed:
   2
@@ -72,9 +72,9 @@ checkpoint_base_path:
 
 # the checkpoint used for test
 test_checkpoint_path:
-  ./checkpoint/checkpoint_snn_conv_1_gesture_sum_99_20201028-181754
-  # ./checkpoint/pretrained_snn_conv_1_gesture_sum
+  ./checkpoint/checkpoint_snn_conv_1_gesture_avg_99_20201028-181754
+  # ./checkpoint/pretrained_snn_conv_1_gesture_avg
 
 acc_file_name:
-  'snn_conv_1_gesture_sum_acc.csv'
+  'snn_conv_1_gesture_avg_acc.csv'
 
