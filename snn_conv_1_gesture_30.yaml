@@ -1,6 +1,6 @@
 
 experiment_name:
-  snn_conv_1_gesture
+  snn_conv_1_gesture_30
 
 pytorch_seed:
   2
@@ -8,7 +8,7 @@ pytorch_seed:
 hyperparameters:
   # default parameters
   length:
-    50
+    30
   batch_size:
     128
   synapse_type:
@@ -72,9 +72,9 @@ checkpoint_base_path:
 
 # the checkpoint used for test
 test_checkpoint_path:
-  ./checkpoint/checkpoint_snn_conv_1_gesture_99_20201028-181754
-  # ./checkpoint/pretrained_snn_conv_1_gesture
+  ./checkpoint/checkpoint_snn_conv_1_gesture_30_99_20201028-181754
+  # ./checkpoint/pretrained_snn_conv_1_gesture_30
 
 acc_file_name:
-  'snn_conv_1_gesture_acc.csv'
+  'snn_conv_1_gesture_30_acc.csv'
 
