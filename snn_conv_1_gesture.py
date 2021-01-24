@@ -14,6 +14,9 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets
 from torchvision import utils
 
+import spikingjelly
+import spikingjelly.datasets
+
 from snn_lib.snn_layers import *
 from snn_lib.optimizers import *
 from snn_lib.schedulers import *
@@ -83,13 +86,7 @@ acc_file_name = experiment_name + '_' + conf['acc_file_name']
 class GestureDataset(Dataset):
     def __init__(self, root, train, length):
         super(GestureDataset, self).__init__()
-        self.root = root
-        if train is True:
-            self.trial_path = 'trials_to_train.txt'
-        else:
-            self.trial_path = 'trials_to_test.txt'
-        self.length = length
-        self.data, self.label = self.get_dataset()
+        self.data, self.label = self.get_dataset(root=root, train=train, length=length)
 
     def __len__(self):
         return len(self.label)
@@ -97,124 +94,26 @@ class GestureDataset(Dataset):
     def __getitem__(self, idx):
         return self.data[idx], self.label[idx]
 
-    def get_event(self, file):
-        with open(os.path.join(self.root, file), 'rb') as bin_f:
-            # skip ascii header
-            line = bin_f.readline()
-            while line.startswith(b'#'):
-                if line == b'#!END-HEADER\r\n':
-                    break
-                else:
-                    line = bin_f.readline()
+    def get_spike_train(self, event, length):
+        p, x, y, t = event['p'], event['x'], event['y'], event['t']
+        t -= t.min()
+        bin_width = (t.max() + 1) // length
+        t = t // bin_width
+        spike_train = torch.zeros((2, 128, 128, length + 1), dtype=torch.bool)  # [p, x, y, t]
+        spike_train[p, x, y, t] = True
+        spike_train = spike_train[:, :, :, 0:length]
+        return spike_train  # [p, x, y, t]
 
-            x_list, y_list, t_list, p_list = [], [], [], []
-            while True:
-                header = bin_f.read(28)
-                if not header or len(header) == 0:
-                    break
-
-                # read header
-                e_type = struct.unpack('H', header[0:2])[0]
-                e_source = struct.unpack('H', header[2:4])[0]
-                e_size = struct.unpack('I', header[4:8])[0]
-                e_offset = struct.unpack('I', header[8:12])[0]
-                e_tsoverflow = struct.unpack('I', header[12:16])[0]
-                e_capacity = struct.unpack('I', header[16:20])[0]
-                e_number = struct.unpack('I', header[20:24])[0]
-                e_valid = struct.unpack('I', header[24:28])[0]
-
-                data_length = e_number * e_size
-                data = bin_f.read(data_length)
-                counter = 0
-
-                for _ in range(e_number):
-                    aer_data = struct.unpack('I', data[counter:counter + 4])[0]
-                    timestamp = struct.unpack('I', data[counter + 4:counter + 8])[0] | e_tsoverflow << 31
-                    x = (aer_data >> 17) & 0x00001FFF
-                    y = (aer_data >> 2) & 0x00001FFF
-                    pol = (aer_data >> 1) & 0x00000001
-                    counter = counter + e_size
-                    x_list.append(x)
-                    y_list.append(y)
-                    t_list.append(timestamp)
-                    p_list.append(pol)
-            p_list = torch.tensor(p_list, dtype=torch.int64)
-            x_list = torch.tensor(x_list, dtype=torch.int64)
-            y_list = torch.tensor(y_list, dtype=torch.int64)
-            t_list = torch.tensor(t_list, dtype=torch.int64)
-            return p_list, x_list, y_list, t_list
-
-    def get_label(self, file):
-        data = {}
-        with open(os.path.join(self.root, file), 'r') as f:
-            lines = csv.reader(f)
-            for i, line in enumerate(lines):
-                if i == 0:
-                    continue
-                period = [int(d) for d in line]
-                if period[0] not in data:
-                    data[period[0]] = []
-                data[period[0]].append(period)
-        return data
-
-    def get_single_sample(self, event):
-        p_list, x_list, y_list, t_list = [], [], [], []
-        t_max = 0
-        for p, x, y, t in event:
-            p_list.append(p)
-            x_list.append(x)
-            y_list.append(y)
-            t += t_max - t.min()
-            t_list.append(t)
-            t_max = t.max() + 1
-        p = torch.cat(p_list)
-        x = torch.cat(x_list)
-        y = torch.cat(y_list)
-        t = torch.cat(t_list)
-        print('time length', t.max() - t.min() + 1)
-        if t.max() + 1 > self.length:
-            bin_width = (t.max() + 1) // self.length
-            t = t // bin_width
-            spike_train = torch.zeros((2, 128, 128, t.max() + 1), dtype=torch.bool)  # [p, x, y, t]
-            spike_train[p, x, y, t] = True
-            spike_train = spike_train[:, :, :, 0:self.length]
-        else:
-            spike_train = torch.zeros((2, 128, 128, self.length), dtype=torch.bool)
-            spike_train[p, x, y, t] = True
-        return spike_train
-
-    def get_sample(self, file):
-        print('process:', file)
-        p, x, y, t = self.get_event(file=file)
-        period = self.get_label(file=file.split('.')[0] + '_labels.csv')
-        data, label = [], []
-        for key in period:
-            event_list = []
-            for peri in period[key]:
-                index = (t >= peri[1]) * (t <= peri[2])
-                index = index.long()
-                event_list.append((p[index], x[index], y[index], t[index]))
-            data.append(self.get_single_sample(event=event_list))
-            label.append(key - 1)
-        return torch.stack(data), torch.tensor(label)  # [batch, p, x, y, t]
-
-    def get_trial(self):
-        with open(os.path.join(self.root, self.trial_path), 'r') as f:
-            file_list = []
-            for line in f:
-                line = line.strip()
-                if len(line) > 0:
-                    file_list.append(line)
-            return file_list
-
-    def get_dataset(self):
+    def get_dataset(self, root, train, length):
         data = []
         label = []
-        for file in self.get_trial():
-            x, y = self.get_sample(file=file)
-            data.append(x)
-            label.append(y)
-        return torch.cat(data), torch.cat(label)
+        dataset = spikingjelly.datasets.dvs128_gesture.DVS128Gesture(root=root, train=train, use_frame=False)
+        for event, number in dataset:
+            data.append(self.get_spike_train(event=event, length=length))
+            label.append(number)
+        data = torch.stack(data)
+        label = torch.tensor(label)
+        return data, label
 
 
 # %% define model
@@ -370,6 +269,7 @@ def test(model, test_data_loader, writer=None):
 if __name__ == "__main__":
 
     snn = mysnn().to(device)
+    snn = torch.nn.DataParallel(snn, device_ids=[0, 1, 2, 3])
 
     writer = SummaryWriter()
 
