@@ -296,8 +296,8 @@ if __name__ == "__main__":
             train_data, [928, 128], generator=torch.Generator().manual_seed(42)
         )
         print('train_data', len(train_data), 'dev_data', len(dev_data))
-        train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=False)
-        dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=False)
+        train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
+        dev_dataloader = DataLoader(dev_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
         train_it = 0
         test_it = 0
@@ -361,7 +361,7 @@ if __name__ == "__main__":
             test_data = GestureDataset(root='./data/DvsGesture', train=False, length=length)
             torch.save(test_data, './data/DvsGesture/test_data.pt')
         print('test_data', len(test_data))
-        test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=False)
+        test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False, drop_last=True)
 
         test_checkpoint = torch.load(test_checkpoint_path)
         snn.load_state_dict(test_checkpoint["snn_state_dict"])
