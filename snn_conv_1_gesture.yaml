@@ -8,7 +8,7 @@ pytorch_seed:
 hyperparameters:
   # default parameters
   length:
-    30
+    50
   batch_size:
     128
   synapse_type:
