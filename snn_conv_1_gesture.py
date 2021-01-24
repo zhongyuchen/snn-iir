@@ -293,7 +293,7 @@ if __name__ == "__main__":
             torch.save(train_data, './data/DvsGesture/train_data.pt')
         print('train data', len(train_data))
         train_data, dev_data = random_split(
-            train_data, [949, 128], generator=torch.Generator().manual_seed(42)
+            train_data, [928, 128], generator=torch.Generator().manual_seed(42)
         )
         print('train_data', len(train_data), 'dev_data', len(dev_data))
         train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
