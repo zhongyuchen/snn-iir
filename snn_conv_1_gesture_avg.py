@@ -99,9 +99,12 @@ class GestureDataset(Dataset):
         t -= t.min()
         bin_width = (t.max() + 1) // length
         t = t // bin_width
-        spike_train = torch.zeros((2, 128, 128, length + 1), dtype=torch.bool)  # [p, x, y, t]
-        spike_train[p, x, y, t] = True
-        spike_train = spike_train[:, :, :, 0:length]
+        # how to sum it up? and divide the max value!!!
+        # spike_train = torch.zeros((2, 128, 128, length + 1), dtype=torch.bool)  # [p, x, y, t]
+        # spike_train[p, x, y, t] = True
+        # spike_train = spike_train[:, :, :, 0:length]
+        spike_train = torch.zeros((2, 128, 128, length + 1), dtype=torch.float32)  # [p, x, y, t]
+
         return spike_train  # [p, x, y, t]
 
     def get_dataset(self, root, train, length):
