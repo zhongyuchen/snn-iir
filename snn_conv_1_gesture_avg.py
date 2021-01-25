@@ -97,7 +97,7 @@ class GestureDataset(Dataset):
     def get_spike_train(self, event, length):
         p, x, y, t = event['p'], event['x'], event['y'], event['t']
         t -= t.min()
-        t /= 1000
+        t = t // 1000
         bin_width = (t.max() + 1) // length
         spike_train = torch.zeros((2, 128, 128,  (length + 1) * bin_width), dtype=torch.bool)  # [p, x, y, t]
         spike_train[p, x, y, t] = True
