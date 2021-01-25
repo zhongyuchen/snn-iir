@@ -26,6 +26,8 @@ python snn_mlp_2_poisson_input.py --train
 |snn_conv_1_nmnist|CNN|zero|dual exp iir|N-MNIST|accumulate within time window(OR)|30|
 |snn_conv_1_gesture|CNN|zero|dual exp iir|DVS128 Gesture Dataset|accumulate within time window(OR)|50|
 |snn_conv_1_gesture_30|CNN|zero|dual exp iir|DVS128 Gesture Dataset|accumulate within time window(OR)|30|
+|snn_conv_1_gesture_avg|CNN|zero|dual exp iir|DVS128 Gesture Dataset|accumulate within time window(SUM)/frame(SUM)|30|
+|snn_conv_1_gesture_max|CNN|zero|dual exp iir|DVS128 Gesture Dataset|accumulate within time window(SUM)/frame(MAX)|30|
 
 ### Times Series Classification
 
@@ -51,6 +53,8 @@ python snn_mlp_2_poisson_input.py --train
 |snn_conv_1_nmnist|99.998(51)|98.708(89)|98.558(89)|__99.39__|
 |snn_conv_1_gesture|95.474(46)|85.156(46)|66.319(46)|96.09|
 |snn_conv_1_gesture_30|96.094(59)|85.938(59)|68.75(59)|96.09|
+|snn_conv_1_gesture_avg|-|-|-|96.09|
+|snn_conv_1_gesture_max|-|-|-|96.09|
 
 ### Times Series Classification
 
