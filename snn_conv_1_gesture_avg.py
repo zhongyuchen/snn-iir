@@ -98,13 +98,12 @@ class GestureDataset(Dataset):
         p, x, y, t = event['p'], event['x'], event['y'], event['t']
         t -= t.min()
         bin_width = (t.max() + 1) // length
-        t = t // bin_width
-        # how to sum it up? and divide the max value!!!
-        # spike_train = torch.zeros((2, 128, 128, length + 1), dtype=torch.bool)  # [p, x, y, t]
-        # spike_train[p, x, y, t] = True
-        # spike_train = spike_train[:, :, :, 0:length]
-        spike_train = torch.zeros((2, 128, 128, length + 1), dtype=torch.float32)  # [p, x, y, t]
-
+        spike_train = torch.zeros((2, 128, 128,  (length + 1) * bin_width), dtype=torch.bool)  # [p, x, y, t]
+        spike_train[p, x, y, t] = True
+        spike_train = spike_train.reshape(2, 128, 128, length + 1, bin_width)
+        spike_train = spike_train.sum(dim=4)
+        spike_train = spike_train[:, :, :, 0:length]
+        spike_train /= spike_train.sum(dim=(0, 1, 2))  # average
         return spike_train  # [p, x, y, t]
 
     def get_dataset(self, root, train, length):
@@ -272,7 +271,7 @@ def test(model, test_data_loader, writer=None):
 if __name__ == "__main__":
 
     snn = mysnn().to(device)
-    snn = torch.nn.DataParallel(snn, device_ids=[0, 1, 2, 3])
+    snn = torch.nn.DataParallel(snn, device_ids=[0, 1])
 
     writer = SummaryWriter()
 
