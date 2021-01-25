@@ -27,7 +27,7 @@ import omegaconf
 from omegaconf import OmegaConf
 
 if torch.cuda.is_available():
-    device = torch.device('cuda:0')
+    device = torch.device('cuda:2')
 else:
     device = torch.device('cpu')
 
@@ -272,7 +272,7 @@ def test(model, test_data_loader, writer=None):
 if __name__ == "__main__":
 
     snn = mysnn().to(device)
-    snn = torch.nn.DataParallel(snn, device_ids=[0, 1])
+    snn = torch.nn.DataParallel(snn, device_ids=[2, 3])
 
     writer = SummaryWriter()
 
