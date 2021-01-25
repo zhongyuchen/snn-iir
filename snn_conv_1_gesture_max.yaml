@@ -72,7 +72,7 @@ checkpoint_base_path:
 
 # the checkpoint used for test
 test_checkpoint_path:
-  ./checkpoint/checkpoint_snn_conv_1_gesture_max_99_20201028-181754
+  ./checkpoint/checkpoint_snn_conv_1_gesture_max_68_20210125-122242
   # ./checkpoint/pretrained_snn_conv_1_gesture_max
 
 acc_file_name:
