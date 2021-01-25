@@ -104,7 +104,7 @@ class GestureDataset(Dataset):
         spike_train = spike_train.reshape(2, 128, 128, length + 1, bin_width)
         spike_train = spike_train.sum(dim=4, dtype=torch.float32)
         spike_train = spike_train[:, :, :, 0:length]
-        spike_train /= spike_train.sum(dim=(0, 1, 2))  # average
+        spike_train /= spike_train.amax(dim=(0, 1, 2))  # max
         return spike_train  # [p, x, y, t]
 
     def get_dataset(self, root, train, length):
