@@ -102,7 +102,7 @@ class GestureDataset(Dataset):
         spike_train = torch.zeros((2, 128, 128,  (length + 1) * bin_width), dtype=torch.bool)  # [p, x, y, t]
         spike_train[p, x, y, t] = True
         spike_train = spike_train.reshape(2, 128, 128, length + 1, bin_width)
-        spike_train = spike_train.sum(dim=4)
+        spike_train = spike_train.sum(dim=4, dtype=torch.float32)
         spike_train = spike_train[:, :, :, 0:length]
         spike_train /= spike_train.sum(dim=(0, 1, 2))  # average
         return spike_train  # [p, x, y, t]
