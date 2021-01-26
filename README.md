@@ -1,5 +1,13 @@
 # snn-iir
 
+PyTorch implementation of Exploiting Neuron and Synapse Filter Dynamics in Spatial Temporal Learning of Deep Spiking Neural Network (IJCAI 20)
+
+## prerequisites
+
+```
+pip install -r requirements.txt
+```
+
 ## run code
 
 ### train model
