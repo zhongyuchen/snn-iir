@@ -63,7 +63,7 @@ python *.py --test
 |experiment|train|dev|test|weights|paper|
 |----------|-----|---|----|-------|-----|
 |snn_mlp_1|99.252(72)|98.58(72)|98.94(72)|[72](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_mlp_1_72_20210111-051825)|-|
-|snn_mlp_1_non_zero|99.116(93)|98.488(93)|[93](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_mlp_1_non_zero_93_20210111-145608)|98.858(93)|-|
+|snn_mlp_1_non_zero|99.116(93)|98.488(93)|98.858(93)|[93](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_mlp_1_non_zero_93_20210111-145608)|-|
 |snn_mlp_1_poisson_input|99.208(98)|98.628(98)|98.928(98)|[98](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_mlp_1_poisson_input_98_20210112-020238)|-|
 |snn_mlp_2|99.3(72)|98.66(72)|98.96(72)|[72](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_mlp_2_72_20210111-041817)|-|
 |snn_mlp_2_poisson_input|99.284(96)|98.748(96)|98.978(96)|[96](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_mlp_2_poisson_input_96_20210112-004922)|-|
