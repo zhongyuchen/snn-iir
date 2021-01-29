@@ -73,7 +73,6 @@ checkpoint_base_path:
 # the checkpoint used for test
 test_checkpoint_path:
   ./checkpoint/checkpoint_snn_conv_1_nmnist_89_20210115-131718
-  # ./checkpoint/pretrained_snn_conv_1_nmnist
 
 acc_file_name:
   'snn_conv_1_nmnist_acc.csv'

@@ -216,6 +216,5 @@ $RECYCLE.BIN/
 .idea/
 data/
 runs/
-associative_memory_checkpoint/
-checkpoint/
-
+#associative_memory_checkpoint/
+#checkpoint/

@@ -73,7 +73,6 @@ checkpoint_base_path:
 # the checkpoint used for test
 test_checkpoint_path:
   ./checkpoint/checkpoint_snn_conv_1_gesture_46_20210124-140846
-  # ./checkpoint/pretrained_snn_conv_1_gesture
 
 acc_file_name:
   'snn_conv_1_gesture_acc.csv'

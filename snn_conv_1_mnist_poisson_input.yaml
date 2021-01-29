@@ -98,7 +98,6 @@ checkpoint_base_path:
 # the checkpoint used for test
 test_checkpoint_path:
   ./checkpoint/checkpoint_snn_conv_1_mnist_poisson_input_93_20210113-044956
-  # ./checkpoint/pretrained_snn_conv_1_mnist_poisson_input
 
 acc_file_name:
   'snn_conv_1_mnist_poisson_input_acc.csv'
