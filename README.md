@@ -21,9 +21,20 @@ python *.py --train
 
 ### Test Model
 
-* Prepare trained weights: do one of the following 
-    * Use the trained weights;
-    * Download ZIP weights from __Results__ section and unzip them;
+#### Prepare Trained Weights
+
+Do one of the following:
+1. Use Trained Weights
+    * Move to appropriate path.
+2. Use ZIP Weights
+    * Download the ZIP weights from __Results__ section;
+    * Unzip ZIP files to get trained weights;
+    * Move to appropriate path;
+    * Modify `test_checkpoint_path` in `.yaml` config file;
+    * Run Python script to test the corresponding model with assigned weights:
+
+#### Test Model
+
 * Modify `test_checkpoint_path` in `.yaml` config file;
 * Run Python script to test the corresponding model with assigned weights:
 ```
