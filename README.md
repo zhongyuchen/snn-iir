@@ -1,22 +1,23 @@
 # snn-iir
 
-PyTorch implementation of Exploiting Neuron and Synapse Filter Dynamics in Spatial Temporal Learning of Deep Spiking Neural Network (IJCAI 20)
+PyTorch implementation of IJCAI 2020 paper Exploiting Neuron and Synapse Filter Dynamics in Spatial Temporal Learning of Deep Spiking Neural Network
+[[arXiv]](https://arxiv.org/abs/2003.02944) [[IJCAI 2020]](https://www.ijcai.org/Proceedings/2020/388)
 
-## prerequisites
+## Prerequisites
 
 ```
 pip install -r requirements.txt
 ```
 
-## run code
+## Usage
 
-### train model
+### Train Model
 
 ```
 python *.py --train
 ```
 
-### test model
+### Test Model
 
 ```
 python *.py --test
@@ -25,6 +26,11 @@ python *.py --test
 ## Models
 
 ### Associative Memory
+
+|experiment|network|states|filter|dataset|encoding|length|
+|----------|-------|------|------|-------|--------|------|
+|associative_memory|MLP|zero|dual exp iir|Pattern Dataset|original|300|
+
 
 ### Vision Tasks
 
@@ -70,3 +76,6 @@ python *.py --test
 
 ### Times Series Classification
 
+## Author
+
+Zhongyu Chen
