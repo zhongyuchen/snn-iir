@@ -5,6 +5,7 @@ PyTorch implementation of IJCAI 2020 paper Exploiting Neuron and Synapse Filter 
 
 ## Prerequisites
 
+Install all the required Python packages:
 ```
 pip install -r requirements.txt
 ```
@@ -13,17 +14,25 @@ pip install -r requirements.txt
 
 ### Train Model
 
+Run Python script to train the corresponding model:
 ```
 python *.py --train
 ```
 
 ### Test Model
 
+* Prepare trained weights: do one of the following 
+    * Use the trained weights;
+    * Download ZIP weights from __Results__ section and unzip them;
+* Modify `test_checkpoint_path` in `.yaml` config file;
+* Run Python script to test the corresponding model with assigned weights:
 ```
 python *.py --test
 ```
 
 ## Models
+
+Details of the models for the following 3 tasks.
 
 ### Associative Memory
 
@@ -50,7 +59,11 @@ python *.py --test
 
 ### Times Series Classification
 
+~~Not implemented.~~
+
 ## Results
+
+The results of the following 3 tasks.
 
 ### Associative Memory
 
@@ -75,6 +88,8 @@ python *.py --test
 |snn_conv_1_gesture_max|97.845(68)|75.781(68)|70.486(68)|[68](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_conv_1_gesture_max_68_20210125-122242.zip)|__96.09__|
 
 ### Times Series Classification
+
+~~Not implemented.~~
 
 ## Author
 
