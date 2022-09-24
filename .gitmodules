@@ -1,0 +1,3 @@
+[submodule "snn-iir-checkpoints"]
+	path = snn-iir-checkpoints
+	url = git@github.com:zhongyuchen/snn-iir-checkpoints.git
