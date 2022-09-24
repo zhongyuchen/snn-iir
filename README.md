@@ -21,15 +21,19 @@ python *.py --train
 
 ### Prepare Trained Weights
 
-Do one of the following:
-1. Use Trained Weights
-    * Move to appropriate path.
-2. Use ZIP Weights
-    * Download the ZIP weights from __Results__ section;
-    * Unzip ZIP files to get trained weights;
-    * Move to appropriate path;
-    * Modify `test_checkpoint_path` in `.yaml` config file;
-    * Run Python script to test the corresponding model with assigned weights:
+#### Use Your Own Trained Weights
+Move them to the appropriate path.
+
+#### Use ZIP Weights
+* Download the ZIP weights by initializing and updating the `snn-iir-checkpoints` submodule;
+    ```
+    git submodule init
+    git submodule update
+    ```
+* Unzip ZIP files to get trained weights;
+* Move to appropriate path;
+* Modify `test_checkpoint_path` in `.yaml` config file;
+* Run Python script to test the corresponding model with assigned weights:
 
 ### Test Model
 
