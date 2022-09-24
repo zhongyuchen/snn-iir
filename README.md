@@ -23,7 +23,7 @@ python *.py --train
 Move them to the appropriate path.
 
 ### To Use ZIP Weights
-* Download the ZIP weights by initializing and updating the `snn-iir-checkpoints` submodule;
+* Download the ZIP weights by initializing and updating the `snn-iir-checkpoints` git submodule;
     ```
     git submodule init
     git submodule update
