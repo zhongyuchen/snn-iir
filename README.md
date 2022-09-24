@@ -17,14 +17,12 @@ Run Python script to train the corresponding model:
 python *.py --train
 ```
 
-## Test Model
+## Prepare Trained Weights for Testing
 
-### Prepare Trained Weights
-
-#### Use Your Own Trained Weights
+### To Use Your Own Trained Weights
 Move them to the appropriate path.
 
-#### Use ZIP Weights
+### To Use ZIP Weights
 * Download the ZIP weights by initializing and updating the `snn-iir-checkpoints` submodule;
     ```
     git submodule init
@@ -35,7 +33,7 @@ Move them to the appropriate path.
 * Modify `test_checkpoint_path` in `.yaml` config file;
 * Run Python script to test the corresponding model with assigned weights:
 
-### Test Model
+## Test Model
 
 * Modify `test_checkpoint_path` in `.yaml` config file;
 * Run Python script to test the corresponding model with assigned weights:
