@@ -30,16 +30,11 @@ Move them to the appropriate path.
     ```
 * Unzip ZIP files to get trained weights;
 * Move to appropriate path;
-* Modify `test_checkpoint_path` in `.yaml` config file;
-* Run Python script to test the corresponding model with assigned weights: `python *.py --test`
 
 ## Test Model
 
 * Modify `test_checkpoint_path` in `.yaml` config file;
-* Run Python script to test the corresponding model with assigned weights:
-```
-python *.py --test
-```
+* Run Python script to test the corresponding model with assigned weights: `python *.py --test`
 
 ## Models
 
