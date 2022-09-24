@@ -78,25 +78,25 @@ The results of the following 3 tasks.
 
 ### Associative Memory
 
-|experiment|train|dev|test|ZIP weights|paper|
+|experiment|train|dev|test|best epoch|paper|
 |----------|-----|---|----|-------|-----|
-|associative_memory|0.0031(93)|0.00369(92)|0.0042(92)|[92](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/associative_memory_checkpoint_92.zip)|-|
+|associative_memory|0.0031(93)|0.00369(92)|0.0042(92)|92|-|
 
 ### Vision Tasks
 
-|experiment|train|dev|test|ZIP weights|paper|
+|experiment|train|dev|test|best epoch|paper|
 |----------|-----|---|----|-------|-----|
-|snn_mlp_1|99.252(72)|98.58(72)|98.94(72)|[72](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_mlp_1_72_20210111-051825.zip)|-|
-|snn_mlp_1_non_zero|99.116(93)|98.488(93)|98.858(93)|[93](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_mlp_1_non_zero_93_20210111-145608.zip)|-|
-|snn_mlp_1_poisson_input|99.208(98)|98.628(98)|98.928(98)|[98](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_mlp_1_poisson_input_98_20210112-020238.zip)|-|
-|snn_mlp_2|99.3(72)|98.66(72)|98.96(72)|[72](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_mlp_2_72_20210111-041817.zip)|-|
-|snn_mlp_2_poisson_input|99.284(96)|98.748(96)|98.978(96)|[96](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_mlp_2_poisson_input_96_20210112-004922.zip)|-|
-|snn_conv_1_mnist|99.84(99)|99.47(99)|__99.59__(99)|[99](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_conv_1_mnist_99_20210112-050334.zip)|-|
-|snn_conv_1_mnist_poisson_input|99.822(93)|99.479(93)|__99.519__(93)|[93](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_conv_1_mnist_poisson_input_93_20210113-044956.zip)|99.46|
-|snn_conv_1_nmnist|99.998(51)|98.708(89)|98.558(89)|[89](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_conv_1_nmnist_89_20210115-131718.zip)|__99.39__|
-|snn_conv_1_gesture|95.474(46)|85.156(46)|66.319(46)|[46](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_conv_1_gesture_46_20210124-140846.zip)|__96.09__|
-|snn_conv_1_gesture_30|96.094(59)|85.938(59)|68.75(59)|[59](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_conv_1_gesture_30_59_20210124-131913.zip)|__96.09__|
-|snn_conv_1_gesture_max|97.845(68)|75.781(68)|70.486(68)|[68](https://github.com/zhongyuchen/snn-iir/releases/download/v1.0.0/checkpoint_snn_conv_1_gesture_max_68_20210125-122242.zip)|__96.09__|
+|snn_mlp_1|99.252(72)|98.58(72)|98.94(72)|72|-|
+|snn_mlp_1_non_zero|99.116(93)|98.488(93)|98.858(93)|93|-|
+|snn_mlp_1_poisson_input|99.208(98)|98.628(98)|98.928(98)|98|-|
+|snn_mlp_2|99.3(72)|98.66(72)|98.96(72)|72|-|
+|snn_mlp_2_poisson_input|99.284(96)|98.748(96)|98.978(96)|96|-|
+|snn_conv_1_mnist|99.84(99)|99.47(99)|__99.59__(99)|99|-|
+|snn_conv_1_mnist_poisson_input|99.822(93)|99.479(93)|__99.519__(93)|93|99.46|
+|snn_conv_1_nmnist|99.998(51)|98.708(89)|98.558(89)|89|__99.39__|
+|snn_conv_1_gesture|95.474(46)|85.156(46)|66.319(46)|46|__96.09__|
+|snn_conv_1_gesture_30|96.094(59)|85.938(59)|68.75(59)|59|__96.09__|
+|snn_conv_1_gesture_max|97.845(68)|75.781(68)|70.486(68)|68|__96.09__|
 
 ### Times Series Classification
 
